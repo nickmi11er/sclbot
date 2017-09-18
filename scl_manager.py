@@ -5,8 +5,6 @@ from datetime import datetime
 wb = load_workbook(filename='schedule.xlsx')
 ws = wb.worksheets[0]
 
-now = datetime.now()
-
 scl_time = {
     0: "9:00-10:30",
     1: "10:40-12:10",
@@ -57,7 +55,11 @@ def get_with(time):
                     cell_name = inc_col_name(cell.column) + str(cell.row)
 
                     if ws[cell_name].value:
-                        task_name += "  " + ws[cell_name].value
+                        val = ws[cell_name].value
+                        if isinstance(val, float):
+                            val = str(val)
+
+                        task_name += "  " + val
 
                     result.append(task_name)
 
