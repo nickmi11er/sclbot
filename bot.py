@@ -4,6 +4,7 @@ import scl_manager
 import date_manager
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+import sqlite3
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -76,12 +77,20 @@ def button(bot, update):
                           message_id=query.message.message_id)
 
 
+def academy_plan(bot, update):
+    conn = sqlite3.connect('data.sqlite')
+    cursor = conn.cursor()
+
+    update.message.reply_text(scl_manager.get_academy_plan(cursor))
+
+
 def error(bot, update, error):
     logging.warning('Update "%s" caused error "%s"' % (update, error))
 
 
 dispatcher.add_handler(CommandHandler('schedule', schedule))
 dispatcher.add_handler(CommandHandler('schedule_with', schedule_with))
+dispatcher.add_handler(CommandHandler('academy_plan', academy_plan))
 dispatcher.add_handler(CallbackQueryHandler(button))
 dispatcher.add_error_handler(error)
 
