@@ -6,7 +6,22 @@ from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import sqlite3
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='log.txt', level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+
+def log_message(message, action):
+    user = message.from_user
+    logging.info(
+        'Action: {}, from user id: {}, {} {} ({}) - message_id: {}, chat: {}, message: '.format(action,
+                                                                                                user.id,
+                                                                                                user.last_name,
+                                                                                                user.first_name,
+                                                                                                user.username,
+                                                                                                message.message_id,
+                                                                                                message.chat.title,
+                                                                                                message.text))
+
 
 updater = Updater('299937300:AAG7z1stwDIBPTBwr4L_sg1dlq2A9TaFIiA')
 dispatcher = updater.dispatcher
@@ -22,14 +37,18 @@ def get_scl_with(dt):
     res = scl_manager.get_with(date)
     for r in res:
         out = out + r + "\n"
+
     return out
 
 
 def schedule(bot, update):
+    log_message(update.message, 'Schedule')
     update.message.reply_text(get_scl_with(None))
 
 
 def schedule_with(bot, update):
+    log_message(update.message, 'Schedule With')
+
     future_days = 7 - dm.today.weekday()
 
     keyboard = []
@@ -78,6 +97,7 @@ def button(bot, update):
 
 
 def academy_plan(bot, update):
+    log_message(update.message, 'Academy Plan')
     conn = sqlite3.connect('data.sqlite')
     cursor = conn.cursor()
 
@@ -96,5 +116,7 @@ dispatcher.add_handler(CallbackQueryHandler(button))
 dispatcher.add_error_handler(error)
 
 updater.start_polling()
+print('Bot is started...')
+
 updater.idle()
 

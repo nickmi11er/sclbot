@@ -1,0 +1,44 @@
+2017-09-19 22:15:59,363 - root - INFO - 2017-09-19 22:15:52 action: Schedule, from user id: 115694888, Miller Nick (None) - message_id: 187, chat: None, message: 
+2017-09-19 22:16:13,128 - root - INFO - 2017-09-19 22:16:12 action: Academy Plan, from user id: 115694888, Miller Nick (None) - message_id: 189, chat: None, message: 
+2017-09-19 22:16:42,004 - telegram.ext.dispatcher - ERROR - An uncaught error was raised while processing the update
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/telegram/ext/dispatcher.py", line 270, in process_update
+    handler.handle_update(update, self)
+  File "/usr/local/lib/python2.7/dist-packages/telegram/ext/callbackqueryhandler.py", line 143, in handle_update
+    return self.callback(dispatcher.bot, update, **optional_args)
+  File "/home/miller/PycharmProjects/KbBot/bot.py", line 87, in button
+    log_message(update.message, 'Schedule With')
+  File "/home/miller/PycharmProjects/KbBot/bot.py", line 14, in log_message
+    user = message.from_user
+AttributeError: 'NoneType' object has no attribute 'from_user'
+2017-09-19 22:20:00,666 - telegram.ext.updater - ERROR - Error while getting Updates: Timed out
+2017-09-19 22:20:00,667 - root - WARNING - Update "None" caused error "Timed out"
+2017-09-19 22:20:13,371 - telegram.ext.dispatcher - ERROR - An uncaught error was raised while processing the update
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/telegram/ext/dispatcher.py", line 270, in process_update
+    handler.handle_update(update, self)
+  File "/usr/local/lib/python2.7/dist-packages/telegram/ext/callbackqueryhandler.py", line 143, in handle_update
+    return self.callback(dispatcher.bot, update, **optional_args)
+  File "/home/miller/PycharmProjects/KbBot/bot.py", line 87, in button
+    def button(bot, update):
+  File "/home/miller/PycharmProjects/KbBot/bot.py", line 14, in log_message
+    user = message.from_user
+AttributeError: 'NoneType' object has no attribute 'from_user'
+2017-09-19 22:20:43,192 - telegram.ext.dispatcher - ERROR - An uncaught error was raised while processing the update
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/dist-packages/telegram/ext/dispatcher.py", line 270, in process_update
+    handler.handle_update(update, self)
+  File "/usr/local/lib/python2.7/dist-packages/telegram/ext/callbackqueryhandler.py", line 143, in handle_update
+    return self.callback(dispatcher.bot, update, **optional_args)
+  File "/home/miller/PycharmProjects/KbBot/bot.py", line 87, in button
+    def button(bot, update):
+  File "/home/miller/PycharmProjects/KbBot/bot.py", line 14, in log_message
+    user = message.from_user
+AttributeError: 'NoneType' object has no attribute 'from_user'
+2017-09-19 22:21:47,365 - telegram.ext.updater - ERROR - Error while getting Updates: Timed out
+2017-09-19 22:21:47,395 - root - WARNING - Update "None" caused error "Timed out"
+2017-09-19 22:22:31,551 - root - INFO - 2017-09-19 22:22:31 action: Schedule With, from user id: 115694888, Miller Nick (None) - message_id: 195, chat: None, message: 
+2017-09-19 22:23:05,200 - telegram.ext.updater - ERROR - Error while getting Updates: Timed out
+2017-09-19 22:23:05,202 - root - WARNING - Update "None" caused error "Timed out"
+2017-09-19 22:24:16,491 - telegram.ext.updater - ERROR - Error while getting Updates: Timed out
+2017-09-19 22:24:16,530 - root - WARNING - Update "None" caused error "Timed out"
