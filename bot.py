@@ -82,6 +82,7 @@ def academy_plan(bot, update):
     cursor = conn.cursor()
 
     update.message.reply_text(scl_manager.get_academy_plan(cursor))
+    conn.close()
 
 
 def error(bot, update, error):
@@ -96,3 +97,4 @@ dispatcher.add_error_handler(error)
 
 updater.start_polling()
 updater.idle()
+
