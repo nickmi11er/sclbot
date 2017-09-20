@@ -6,6 +6,7 @@ from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import sqlite3
 import datetime
+import data_manager
 
 logging.basicConfig(filename='log.txt', level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -27,6 +28,10 @@ def log_message(message, action):
 updater = Updater('299937300:AAG7z1stwDIBPTBwr4L_sg1dlq2A9TaFIiA')
 dispatcher = updater.dispatcher
 dm = date_manager
+
+
+def my_id(bot, update):
+    update.message.reply_text("Ваш ID: {}".format(update.message.from_user.id))
 
 
 def get_scl_with(dt):
@@ -106,6 +111,56 @@ def academy_plan(bot, update):
     conn.close()
 
 
+def users_list(bot, update):
+    log_message(update.message, 'Users List')
+    user_id = update.message.from_user.id
+
+    conn = sqlite3.connect('data.sqlite')
+    user = data_manager.get_user(conn, user_id)
+
+    if user is not None:
+        if user[3] == 1:
+            res = data_manager.users_list(conn)
+        else:
+            res = u"Нехватка прав доступа"
+    else:
+        res = u"Нехватка прав доступа"
+
+    update.message.reply_text(res)
+    conn.close()
+
+
+def add_user(bot, update, args):
+    log_message(update.message, 'Add User')
+    user_id = update.message.from_user.id
+    print(args)
+
+    res = ""
+    if len(args) < 3:
+        res += u"Для добавления пользователя необходимо передать параметры в виде: /add_user id_пользователя роль(1 - админ) имя"
+    else:
+        conn = sqlite3.connect('data.sqlite')
+        user = data_manager.get_user(conn, user_id)
+
+        if user is not None:
+            if user[3] == 1:
+                username = u""
+                if len(args) == 3:
+                    username += args[2]
+                elif len(args) == 4:
+                    username + u'{} {}'.format(args[2], args[3])
+
+                res = data_manager.add_user(conn, username, args[0], args[1])
+            else:
+                res = u"Нехватка прав доступа"
+        else:
+            res = u"Нехватка прав доступа"
+
+        conn.close()
+
+    update.message.reply_text(res)
+
+
 def error(bot, update, error):
     logging.warning('Update "%s" caused error "%s"' % (update, error))
 
@@ -113,8 +168,13 @@ def error(bot, update, error):
 dispatcher.add_handler(CommandHandler('schedule', schedule))
 dispatcher.add_handler(CommandHandler('schedule_with', schedule_with))
 dispatcher.add_handler(CommandHandler('academy_plan', academy_plan))
+dispatcher.add_handler(CommandHandler('my_id', my_id))
 dispatcher.add_handler(CallbackQueryHandler(button))
 dispatcher.add_error_handler(error)
+
+# Админский блок
+dispatcher.add_handler(CommandHandler('users_list', users_list))
+dispatcher.add_handler(CommandHandler('add_user', add_user, pass_args=True))
 
 updater.start_polling()
 print('Bot is started...')
