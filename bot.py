@@ -5,6 +5,7 @@ import date_manager
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import sqlite3
+import datetime
 
 logging.basicConfig(filename='log.txt', level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -13,14 +14,14 @@ logging.basicConfig(filename='log.txt', level=logging.INFO,
 def log_message(message, action):
     user = message.from_user
     logging.info(
-        'Action: {}, from user id: {}, {} {} ({}) - message_id: {}, chat: {}, message: '.format(action,
-                                                                                                user.id,
-                                                                                                user.last_name,
-                                                                                                user.first_name,
-                                                                                                user.username,
-                                                                                                message.message_id,
-                                                                                                message.chat.title,
-                                                                                                message.text))
+        u'Action: {}, from user id: {}, {} {} ({}) - message_id: {}, chat: {}, message: '.format(action,
+                                                                                                 user.id,
+                                                                                                 user.last_name,
+                                                                                                 user.first_name,
+                                                                                                 user.username,
+                                                                                                 message.message_id,
+                                                                                                 message.chat.title,
+                                                                                                 message.text))
 
 
 updater = Updater('299937300:AAG7z1stwDIBPTBwr4L_sg1dlq2A9TaFIiA')
@@ -29,7 +30,7 @@ dm = date_manager
 
 
 def get_scl_with(dt):
-    date = dm.today
+    date = datetime.datetime.now()
     if dt is not None:
         date = dt
 
@@ -119,4 +120,3 @@ updater.start_polling()
 print('Bot is started...')
 
 updater.idle()
-
