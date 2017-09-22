@@ -1,10 +1,6 @@
 # coding=utf-8
-import logging
 from openpyxl import load_workbook
 from datetime import datetime
-
-logging.basicConfig(filename='log.txt', level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 wb = load_workbook(filename='schedule.xlsx')
 ws = wb.worksheets[0]
@@ -29,6 +25,7 @@ def schedule_time(num):
     return scl_time[num]
 
 
+# Получение списка предметов из exel на указанный день
 def get_with(time):
     time = time.replace(hour=0, minute=0, second=0, microsecond=0)
     result = []
@@ -38,9 +35,9 @@ def get_with(time):
     for column in ws.iter_cols(min_col=1):
 
         for cell in column:
-
+            # если ячейка не пустая
             if cell.value:
-
+                # если нужная дата еще не найдена, проверяем дальше
                 if not date_is_find:
                     if isinstance(cell.value, datetime):
                         if time == cell.value:
@@ -68,28 +65,3 @@ def get_with(time):
                     result.append(task_name)
 
     return result
-
-
-def get_academy_plan(cursor):
-    res = ""
-
-    exams = cursor.execute("SELECT name FROM subjects s WHERE s.exam = 'true'").fetchall()
-    res += u"Экзамены: \n"
-    i = 1
-    for exam in exams:
-        res += str(i) + ": " + exam[0] + '\n'
-        i += 1
-
-    res += u"Всего экзаменов: " + str(i - 1) + '\n'
-
-    res += '\n'
-    credits = cursor.execute("SELECT name FROM subjects s WHERE s.exam = 'false'").fetchall()
-    res += u"Зачеты: \n"
-    i = 1
-    for credit in credits:
-        res += str(i) + ": " + credit[0] + '\n'
-        i += 1
-
-    res += u"Всего зачетов: " + str(i - 1) + '\n'
-
-    return res

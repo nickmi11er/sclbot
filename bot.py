@@ -7,12 +7,20 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import sqlite3
 import datetime
 import data_manager
+import err_handler
 
 logging.basicConfig(filename='log.txt', level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
+_db_name = 'data.sqlite'
+_bot_token = '299937300:AAG7z1stwDIBPTBwr4L_sg1dlq2A9TaFIiA'
 
-def log_message(message, action):
+updater = Updater(_bot_token)
+dispatcher = updater.dispatcher
+dm = date_manager
+
+
+def log_bot_request(message, action):
     user = message.from_user
     logging.info(
         u'Action: {}, from user id: {}, {} {} ({}) - message_id: {}, chat: {}, message: '.format(action,
@@ -25,15 +33,25 @@ def log_message(message, action):
                                                                                                  message.text))
 
 
-updater = Updater('299937300:AAG7z1stwDIBPTBwr4L_sg1dlq2A9TaFIiA')
-dispatcher = updater.dispatcher
-dm = date_manager
+# Проверка прав доступа к админским функциям
+def check_permission(conn, user_id):
+    user = data_manager.get_user(conn, user_id)
+
+    if user is not None:
+        if user[3] == 1:
+            return True
+        else:
+            return False
+    else:
+        return False
 
 
+# Возвращает id пользователя, сделавшего запрос
 def my_id(bot, update):
     update.message.reply_text("Ваш ID: {}".format(update.message.from_user.id))
 
 
+# Получение списка пар из exel
 def get_scl_with(dt):
     date = datetime.datetime.now()
     if dt is not None:
@@ -47,13 +65,15 @@ def get_scl_with(dt):
     return out
 
 
+# CommandHandler: Расписание пар на текущий день
 def schedule(bot, update):
-    log_message(update.message, 'Schedule')
+    log_bot_request(update.message, 'Schedule')
     update.message.reply_text(get_scl_with(None))
 
 
+# CommandHandler: Расписание пар на заданный день недели
 def schedule_with(bot, update):
-    log_message(update.message, 'Schedule With')
+    log_bot_request(update.message, 'Schedule With')
 
     future_days = 7 - dm.today.weekday()
 
@@ -93,76 +113,67 @@ def schedule_with(bot, update):
 
 def button(bot, update):
     query = update.callback_query
-    type = int(query.data)
+    _type = int(query.data)
 
-    res = get_scl_with(dm.get_day_over(type - dm.today.weekday()))
+    res = get_scl_with(dm.get_day_over(_type - dm.today.weekday()))
 
     bot.edit_message_text(text=res,
                           chat_id=query.message.chat_id,
                           message_id=query.message.message_id)
 
 
+# CommandHandler: Акакдемический план
 def academy_plan(bot, update):
-    log_message(update.message, 'Academy Plan')
-    conn = sqlite3.connect('data.sqlite')
-    cursor = conn.cursor()
+    log_bot_request(update.message, 'Academy Plan')
+    conn = sqlite3.connect(_db_name)
 
-    update.message.reply_text(scl_manager.get_academy_plan(cursor))
+    update.message.reply_text(data_manager.get_academy_plan(conn))
     conn.close()
 
 
+# CommandHandler(Admin request): Список пользователей
 def users_list(bot, update):
-    log_message(update.message, 'Users List')
-    user_id = update.message.from_user.id
+    log_bot_request(update.message, 'Users List')
+    conn = sqlite3.connect(_db_name)
 
-    conn = sqlite3.connect('data.sqlite')
-    user = data_manager.get_user(conn, user_id)
-
-    if user is not None:
-        if user[3] == 1:
-            res = data_manager.users_list(conn)
-        else:
-            res = u"Нехватка прав доступа"
+    if check_permission(conn, update.message.from_user.id):
+        res = data_manager.users_list(conn)
     else:
-        res = u"Нехватка прав доступа"
+        res = err_handler.permission_error
 
     update.message.reply_text(res)
     conn.close()
 
 
-def add_user(bot, update, args):
-    log_message(update.message, 'Add User')
-    user_id = update.message.from_user.id
-    print(args)
+# CommandHandler(Admin request): Добавить нового пользователя
+def add_user(update, args):
+    log_bot_request(update.message, 'Add User')
 
     res = ""
     if len(args) < 3:
-        res += u"Для добавления пользователя необходимо передать параметры в виде: /add_user id_пользователя роль(1 - админ) имя"
+        res += u"Для добавления пользователя необходимо передать параметры в виде: /add_user id_пользователя роль(1 - "\
+               u"админ) имя "
     else:
-        conn = sqlite3.connect('data.sqlite')
-        user = data_manager.get_user(conn, user_id)
+        conn = sqlite3.connect(_db_name)
 
-        if user is not None:
-            if user[3] == 1:
-                username = u""
-                if len(args) == 3:
-                    username += args[2]
-                elif len(args) == 4:
-                    username + u'{} {}'.format(args[2], args[3])
+        if check_permission(conn, update.message.from_user.id):
+            username = u''
+            if len(args) == 3:
+                username += args[2]
+            elif len(args) == 4:
+                username + u'{} {}'.format(args[2], args[3])
 
-                res = data_manager.add_user(conn, username, args[0], args[1])
-            else:
-                res = u"Нехватка прав доступа"
+            res = data_manager.add_user(conn, username, args[0], args[1])
         else:
-            res = u"Нехватка прав доступа"
+            res = err_handler.permission_error
 
         conn.close()
 
     update.message.reply_text(res)
 
 
-def error(bot, update, error):
-    logging.warning('Update "%s" caused error "%s"' % (update, error))
+def error(update, _error):
+    logging.warning('Update "%s" caused error "%s"' % (update, _error))
 
 
 dispatcher.add_handler(CommandHandler('schedule', schedule))

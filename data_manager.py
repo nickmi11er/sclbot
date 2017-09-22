@@ -42,5 +42,27 @@ def delete_user(conn, id):
         conn.commit()
 
 
-conn = sqlite3.connect('data.sqlite')
-print(users_list(conn))
+def get_academy_plan(conn):
+    cursor = conn.cursor()
+    res = ""
+
+    exams = cursor.execute("SELECT name FROM subjects s WHERE s.exam = 'true'").fetchall()
+    res += u"Экзамены: \n"
+    i = 1
+    for exam in exams:
+        res += str(i) + ": " + exam[0] + '\n'
+        i += 1
+
+    res += u"Всего экзаменов: " + str(i - 1) + '\n'
+
+    res += '\n'
+    credits = cursor.execute("SELECT name FROM subjects s WHERE s.exam = 'false'").fetchall()
+    res += u"Зачеты: \n"
+    i = 1
+    for credit in credits:
+        res += str(i) + ": " + credit[0] + '\n'
+        i += 1
+
+    res += u"Всего зачетов: " + str(i - 1) + '\n'
+
+    return res
