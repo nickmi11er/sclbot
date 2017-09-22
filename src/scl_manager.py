@@ -2,7 +2,7 @@
 from openpyxl import load_workbook
 from datetime import datetime
 
-wb = load_workbook(filename='schedule.xlsx')
+wb = load_workbook(filename='../schedule.xlsx')
 ws = wb.worksheets[0]
 
 scl_time = {

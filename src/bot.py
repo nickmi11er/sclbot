@@ -11,10 +11,10 @@ import date_manager as dm
 import err_handler
 import scl_manager
 
-logging.basicConfig(filename='log.txt', level=logging.INFO,
+logging.basicConfig(filename='../log.txt', level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-_db_name = 'data.sqlite'
+_db_name = '../data.sqlite'
 _bot_token = '299937300:AAG7z1stwDIBPTBwr4L_sg1dlq2A9TaFIiA'
 
 updater = Updater(_bot_token)
