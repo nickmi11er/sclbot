@@ -1,13 +1,15 @@
 # coding=utf-8
-import logging
-import scl_manager
-import date_manager
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-import sqlite3
 import datetime
+import logging
+import sqlite3
+
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
+
 import data_manager
+import date_manager as dm
 import err_handler
+import scl_manager
 
 logging.basicConfig(filename='log.txt', level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -17,7 +19,6 @@ _bot_token = '299937300:AAG7z1stwDIBPTBwr4L_sg1dlq2A9TaFIiA'
 
 updater = Updater(_bot_token)
 dispatcher = updater.dispatcher
-dm = date_manager
 
 
 def log_bot_request(message, action):
@@ -137,7 +138,10 @@ def users_list(bot, update):
     conn = sqlite3.connect(_db_name)
 
     if check_permission(conn, update.message.from_user.id):
-        res = data_manager.users_list(conn)
+        res = u"Список пользователей: \n"
+
+        for row in data_manager.users_list(conn):
+            res += '{}: {} (role: {})\n'.format(row[0], row[1], row[2])
     else:
         res = err_handler.permission_error
 
@@ -151,7 +155,7 @@ def add_user(update, args):
 
     res = ""
     if len(args) < 3:
-        res += u"Для добавления пользователя необходимо передать параметры в виде: /add_user id_пользователя роль(1 - "\
+        res += u"Для добавления пользователя необходимо передать параметры в виде: /add_user id_пользователя роль(1 - " \
                u"админ) имя "
     else:
         conn = sqlite3.connect(_db_name)
@@ -163,7 +167,7 @@ def add_user(update, args):
             elif len(args) == 4:
                 username + u'{} {}'.format(args[2], args[3])
 
-            res = data_manager.add_user(conn, username, args[0], args[1])
+            res = data_manager.add_or_update_user(conn, username, args[0], args[1])
         else:
             res = err_handler.permission_error
 
@@ -178,14 +182,48 @@ def error(bot, update, _error):
 
 def lecturers_list(bot, update):
     connection = sqlite3.connect('data.sqlite')
-    log_message(update.message, 'get lecturers list')
+    log_bot_request(update.message, 'get lecturers list')
     update.message.reply_text(data_manager.get_lecturers(connection))
+
+
+def notify_me(bot, update):
+    log_bot_request(update.message, 'Notify Me')
+    conn = sqlite3.connect(_db_name)
+
+    msg = ''
+    subscriber = data_manager.get_subscriber(conn, update.message.chat.id)
+    if subscriber is None:
+        data_manager.add_subscriber(conn, update.message.chat.id)
+        msg = 'Теперь вам будут приходить уведомления'
+    else:
+        msg = 'Вы уже подписаны на уведомления'
+
+    update.message.reply_text(msg)
+    conn.close()
+
+
+def unsubscribe(bot, update):
+    log_bot_request(update.message, 'Unsubscribe')
+    conn = sqlite3.connect(_db_name)
+
+    msg = ''
+    subscriber = data_manager.get_subscriber(conn, update.message.chat.id)
+    if subscriber is not None:
+        data_manager.delete_subscriber(conn, update.message.chat.id)
+        msg = 'Вам больше не будут приходить уведомления'
+    else:
+        msg = 'Вы не подписаны на уведомления'
+
+    update.message.reply_text(msg)
+    conn.close()
 
 
 dispatcher.add_handler(CommandHandler('schedule', schedule))
 dispatcher.add_handler(CommandHandler('schedule_with', schedule_with))
 dispatcher.add_handler(CommandHandler('academy_plan', academy_plan))
 dispatcher.add_handler(CommandHandler('my_id', my_id))
+dispatcher.add_handler(CommandHandler('notify_me', notify_me))
+dispatcher.add_handler(CommandHandler('unsubscribe', unsubscribe))
 dispatcher.add_handler(CallbackQueryHandler(button))
 dispatcher.add_error_handler(error)
 dispatcher.add_handler(CommandHandler("lecturers_list", lecturers_list))
@@ -196,5 +234,32 @@ dispatcher.add_handler(CommandHandler('add_user', add_user, pass_args=True))
 
 updater.start_polling()
 print('Bot is started...')
+
+
+# =================================================================
+
+
+notified = False
+
+
+def callback_scl_notifier(bot, job):
+    global notified
+    current_hour = datetime.datetime.now().hour
+    if 8 <= current_hour < 9 and not notified:
+        notified = True
+        conn = sqlite3.connect(_db_name)
+
+        for subscriber in data_manager.get_subscribers(conn):
+            bot.send_message(chat_id=subscriber[0], text=get_scl_with(None))
+
+        conn.close()
+    elif current_hour >= 9:
+        notified = False
+
+
+schedule_notifier = updater.job_queue.run_repeating(callback_scl_notifier, interval=60, first=0)
+print('Schedule notifier started...')
+
+# =================================================================
 
 updater.idle()
