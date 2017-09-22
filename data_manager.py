@@ -23,6 +23,7 @@ def get_user(conn, tg_user_id):
 
 def add_user(conn, username, tg_user_id, role):
     try:
+        username = unicode(username, 'utf8')
         conn.cursor().execute("INSERT INTO users (username, tg_user_id, role) VALUES (?, ?, ?)",
                               (username, tg_user_id, role))
     except sqlite3.DatabaseError as err:
@@ -40,6 +41,25 @@ def delete_user(conn, id):
         conn.rollback()
     else:
         conn.commit()
+
+
+def get_lecturers(conn):
+    result = u'Список преподавателей:\n\n'
+    lecturers = conn.cursor().execute("""SELECT group_concat(s.name) AS subject_name,
+         (SELECT l1.name
+          FROM lecturer l1
+            WHERE l1.id = l.id) AS lect
+          FROM subjects s
+          JOIN lecturer l ON s.lecture = l.id
+          GROUP BY l.id""").fetchall()
+
+    for lecturer in lecturers:
+        result += lecturer[1] + ':\n'
+        subjects = lecturer[0].split(",")
+        for subject in subjects:
+            result += subject + '\n'
+        result += '\n'
+    return result
 
 
 def get_academy_plan(conn):

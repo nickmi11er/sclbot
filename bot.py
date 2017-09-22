@@ -176,12 +176,19 @@ def error(bot, update, _error):
     logging.warning('Update "%s" caused error "%s"' % (update, _error))
 
 
+def lecturers_list(bot, update):
+    connection = sqlite3.connect('data.sqlite')
+    log_message(update.message, 'get lecturers list')
+    update.message.reply_text(data_manager.get_lecturers(connection))
+
+
 dispatcher.add_handler(CommandHandler('schedule', schedule))
 dispatcher.add_handler(CommandHandler('schedule_with', schedule_with))
 dispatcher.add_handler(CommandHandler('academy_plan', academy_plan))
 dispatcher.add_handler(CommandHandler('my_id', my_id))
 dispatcher.add_handler(CallbackQueryHandler(button))
 dispatcher.add_error_handler(error)
+dispatcher.add_handler(CommandHandler("lecturers_list", lecturers_list))
 
 # Админский блок
 dispatcher.add_handler(CommandHandler('users_list', users_list))
