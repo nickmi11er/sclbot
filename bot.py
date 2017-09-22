@@ -172,7 +172,7 @@ def add_user(update, args):
     update.message.reply_text(res)
 
 
-def error(update, _error):
+def error(bot, update, _error):
     logging.warning('Update "%s" caused error "%s"' % (update, _error))
 
 
