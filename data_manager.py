@@ -23,7 +23,7 @@ def get_user(conn, tg_user_id):
 
 def add_user(conn, username, tg_user_id, role):
     try:
-        conn.cursor().execute("INSERT INTO users (username, tg_user_id, role) VALUES (?, ?, ?)",
+        conn.cursor().execute("INSERT INTO users unicode(username, 'utf8'), tg_user_id, role) VALUES (?, ?, ?)",
                               (username, tg_user_id, role))
     except sqlite3.DatabaseError as err:
         logging.error(err)
@@ -42,5 +42,23 @@ def delete_user(conn, id):
         conn.commit()
 
 
-conn = sqlite3.connect('data.sqlite')
-print(users_list(conn))
+def get_lecturers(conn):
+    result = u'Список преподавателей:\n\n'
+    lecturers = conn.cursor().execute("""SELECT group_concat(s.name) AS subject_name,
+         (SELECT l1.name
+          FROM lecturer l1
+            WHERE l1.id = l.id) AS lect
+          FROM subjects s
+          JOIN lecturer l ON s.lecture = l.id
+          GROUP BY l.id""").fetchall()
+
+    for lecturer in lecturers:
+        result += lecturer[1] + ':\n'
+        subjects = lecturer[0].split(",")
+        for subject in subjects:
+            result += subject + '\n'
+        result+='\n'
+    return result
+
+
+

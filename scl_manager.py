@@ -10,7 +10,7 @@ wb = load_workbook(filename='schedule.xlsx')
 ws = wb.worksheets[0]
 
 scl_time = {
-    1: "9:00-10:30",
+    1: "09:00-10:30",
     2: "10:40-12:10",
     3: "13:00-14:30",
     4: "14:40-16:10",

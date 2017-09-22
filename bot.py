@@ -133,8 +133,6 @@ def users_list(bot, update):
 def add_user(bot, update, args):
     log_message(update.message, 'Add User')
     user_id = update.message.from_user.id
-    print(args)
-
     res = ""
     if len(args) < 3:
         res += u"Для добавления пользователя необходимо передать параметры в виде: /add_user id_пользователя роль(1 - админ) имя"
@@ -165,12 +163,19 @@ def error(bot, update, error):
     logging.warning('Update "%s" caused error "%s"' % (update, error))
 
 
+def lecturers_list(bot, update):
+    connection = sqlite3.connect('data.sqlite')
+    log_message(update.message, 'get lecturers list')
+    update.message.reply_text(data_manager.get_lecturers(connection))
+
+
 dispatcher.add_handler(CommandHandler('schedule', schedule))
 dispatcher.add_handler(CommandHandler('schedule_with', schedule_with))
 dispatcher.add_handler(CommandHandler('academy_plan', academy_plan))
 dispatcher.add_handler(CommandHandler('my_id', my_id))
 dispatcher.add_handler(CallbackQueryHandler(button))
 dispatcher.add_error_handler(error)
+dispatcher.add_handler(CommandHandler("lecturers_list", lecturers_list))
 
 # Админский блок
 dispatcher.add_handler(CommandHandler('users_list', users_list))
