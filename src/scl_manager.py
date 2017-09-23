@@ -1,8 +1,9 @@
 # coding=utf-8
 from openpyxl import load_workbook
 from datetime import datetime
+import const
 
-wb = load_workbook(filename='schedule.xlsx')
+wb = load_workbook(filename=const.root_path + '/assets/schedule.xlsx')
 ws = wb.worksheets[0]
 
 scl_time = {

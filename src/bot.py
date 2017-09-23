@@ -8,13 +8,13 @@ from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 
 import data_manager
 import date_manager as dm
-import err_handler
+import const
 import scl_manager
 
-logging.basicConfig(filename='log.txt', level=logging.INFO,
+logging.basicConfig(filename=const.root_path + '/log.txt', level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-_db_name = 'data.sqlite'
+_db_name = const.root_path + '/assets/data.sqlite'
 _bot_token = '299937300:AAG7z1stwDIBPTBwr4L_sg1dlq2A9TaFIiA'
 
 updater = Updater(_bot_token)
@@ -143,7 +143,7 @@ def users_list(bot, update):
         for row in data_manager.users_list(conn):
             res += '{}: {} (role: {})\n'.format(row[0], row[1], row[2])
     else:
-        res = err_handler.permission_error
+        res = const.permission_error
 
     update.message.reply_text(res)
     conn.close()
@@ -169,7 +169,7 @@ def add_user(update, args):
 
             res = data_manager.add_or_update_user(conn, username, args[0], args[1])
         else:
-            res = err_handler.permission_error
+            res = const.permission_error
 
         conn.close()
 
@@ -181,7 +181,7 @@ def error(bot, update, _error):
 
 
 def lecturers_list(bot, update):
-    connection = sqlite3.connect('data.sqlite')
+    connection = sqlite3.connect(_db_name)
     log_bot_request(update.message, 'get lecturers list')
     update.message.reply_text(data_manager.get_lecturers(connection))
 
@@ -193,7 +193,7 @@ def notify_me(bot, update):
     msg = ''
     subscriber = data_manager.get_subscriber(conn, update.message.chat.id)
     if subscriber is None:
-        data_manager.add_subscriber(conn, update.message.chat.id)
+        data_manager.add_subscriber(conn, update.message.chat.id, update.message.from_user.id)
         msg = 'Теперь вам будут приходить уведомления'
     else:
         msg = 'Вы уже подписаны на уведомления'

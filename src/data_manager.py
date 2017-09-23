@@ -91,9 +91,9 @@ def get_subscriber(conn, chat_id):
     return conn.cursor().execute("SELECT chat_id FROM subscribers WHERE chat_id = (?)", (chat_id, )).fetchone()
 
 
-def add_subscriber(conn, chat_id):
+def add_subscriber(conn, chat_id, tg_user_id):
     try:
-        conn.cursor().execute("INSERT INTO subscribers (chat_id) VALUES (?)", (chat_id, ))
+        conn.cursor().execute("INSERT INTO subscribers (chat_id, tg_user_id) VALUES (?, ?)", (chat_id, tg_user_id))
     except sqlite3.DatabaseError as err:
         logging.error(err)
         conn.rollback()
