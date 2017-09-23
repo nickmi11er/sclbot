@@ -218,12 +218,27 @@ def unsubscribe(bot, update):
     conn.close()
 
 
+def day_x(bot, update):
+    log_bot_request(update.message, 'Day X')
+    conn = sqlite3.connect(_db_name)
+
+    output = ''
+    res = scl_manager.scl_info(conn)
+    output += u"Сейчас идет " + str(res['weeknum']) + u" неделя\n"
+    output += u"Осталось до сессии недель: " + str(res['days'] / 7) + u", дней: " + str(res['days'] % 7) + "\n"
+    output += u"Пройдено: " + str(res['percentage']) + "%"
+
+    update.message.reply_text(output)
+    conn.close()
+
+
 dispatcher.add_handler(CommandHandler('schedule', schedule))
 dispatcher.add_handler(CommandHandler('schedule_with', schedule_with))
 dispatcher.add_handler(CommandHandler('academy_plan', academy_plan))
 dispatcher.add_handler(CommandHandler('my_id', my_id))
 dispatcher.add_handler(CommandHandler('notify_me', notify_me))
 dispatcher.add_handler(CommandHandler('unsubscribe', unsubscribe))
+dispatcher.add_handler(CommandHandler('day_x', day_x))
 dispatcher.add_handler(CallbackQueryHandler(button))
 dispatcher.add_error_handler(error)
 dispatcher.add_handler(CommandHandler("lecturers_list", lecturers_list))
@@ -235,7 +250,6 @@ dispatcher.add_handler(CommandHandler('add_user', add_user, pass_args=True))
 updater.start_polling()
 print('Bot is started...')
 
-
 # =================================================================
 
 
@@ -243,6 +257,9 @@ notified = False
 
 
 def callback_scl_notifier(bot, job):
+    if dm.today.weekday() == 5 or dm.today.weekday() == 6:
+        return
+
     global notified
     current_hour = datetime.datetime.now().hour
     if 8 <= current_hour < 9 and not notified:

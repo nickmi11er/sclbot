@@ -2,6 +2,7 @@
 from openpyxl import load_workbook
 from datetime import datetime
 import const
+import data_manager as dm
 
 wb = load_workbook(filename=const.root_path + '/assets/schedule.xlsx')
 ws = wb.worksheets[0]
@@ -66,3 +67,22 @@ def get_with(time):
                     result.append(task_name)
 
     return result
+
+
+def scl_info(conn):
+    meta = dm.get_meta(conn)
+
+    time_start = datetime.strptime(meta[1], '%d.%m.%Y')
+    time_now = datetime.today()
+    time_end = datetime.strptime(meta[2], '%d.%m.%Y')
+
+    weeknum = (time_now.day - time_start.day) / 7
+    percentage = str(int((float((time_now - time_start).days) / float((time_end - time_start).days)) * 100))
+
+    res = {
+        'weeknum': weeknum,
+        'days': (time_end - time_now).days,
+        'percentage': percentage
+    }
+
+    return res

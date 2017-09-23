@@ -41,12 +41,12 @@ def delete_user(conn, id):
 def get_lecturers(conn):
     result = u'Список преподавателей:\n\n'
     lecturers = conn.cursor().execute("""SELECT group_concat(s.subj_name) AS subject_name,
-         (SELECT l1.lecturer_name
-          FROM lecturer l1
-            WHERE l1.lecturer_id = l.lecturer_id) AS lect
-          FROM subjects s
-          JOIN lecturer l ON s.lecture = l.lecturer_id
-          GROUP BY l.lecturer_id""").fetchall()
+                                             (SELECT l1.lecturer_name
+                                              FROM lecturer l1
+                                                WHERE l1.lecturer_id = l.lecturer_id) AS lect
+                                              FROM subjects s
+                                              JOIN lecturer l ON s.lecture = l.lecturer_id
+                                              GROUP BY l.lecturer_id""").fetchall()
 
     for lecturer in lecturers:
         result += lecturer[1] + ':\n'
@@ -109,3 +109,7 @@ def delete_subscriber(conn, chat_id):
         conn.rollback()
     else:
         conn.commit()
+
+
+def get_meta(conn):
+    return conn.cursor().execute("SELECT group_name, start_date, session_date FROM meta").fetchone()
