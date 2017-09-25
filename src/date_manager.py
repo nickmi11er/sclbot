@@ -11,8 +11,6 @@ rus_week_day = {
     6: "Восскресенье"
 }
 
-today = datetime.datetime.now()
-
 
 def get_day_over(count):
-    return today + datetime.timedelta(days=count)
+    return datetime.datetime.now() + datetime.timedelta(days=count)

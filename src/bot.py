@@ -1,5 +1,5 @@
 # coding=utf-8
-import datetime
+from datetime import datetime as dm
 import logging
 import sqlite3
 
@@ -7,14 +7,14 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 
 import data_manager
-import date_manager as dm
+import date_manager
 import const
 import scl_manager
 
 logging.basicConfig(filename=const.root_path + '/log.txt', level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-_db_name = const.root_path + '/assets/data.sqlite'
+_db_name = const.assets_dir + '/data.sqlite'
 _bot_token = '299937300:AAG7z1stwDIBPTBwr4L_sg1dlq2A9TaFIiA'
 
 updater = Updater(_bot_token)
@@ -54,11 +54,11 @@ def my_id(bot, update):
 
 # Получение списка пар из exel
 def get_scl_with(dt):
-    date = datetime.datetime.now()
+    date = dm.now()
     if dt is not None:
         date = dt
 
-    out = u"Расписание пар на " + unicode(dm.rus_week_day[date.weekday()], 'utf8') + ": \n\n"
+    out = u"Расписание пар на " + unicode(date_manager.rus_week_day[date.weekday()], 'utf8') + ": \n\n"
     res = scl_manager.get_with(date)
     for r in res:
         out = out + r + "\n"
@@ -76,11 +76,11 @@ def schedule(bot, update):
 def schedule_with(bot, update):
     log_bot_request(update.message, 'Schedule With')
 
-    future_days = 7 - dm.today.weekday()
+    future_days = 7 - dm.now().weekday()
 
     keyboard = []
     exist_days = future_days
-    current_day = dm.today.weekday()
+    current_day = dm.now().weekday()
 
     for i in range(0, (future_days / 3)):
         row = []
@@ -101,7 +101,7 @@ def schedule_with(bot, update):
                 current_day += 1
                 continue
             if exist_days > 0:
-                row.append(InlineKeyboardButton(dm.rus_week_day[current_day], callback_data=str(current_day)))
+                row.append(InlineKeyboardButton(date_manager.rus_week_day[current_day], callback_data=str(current_day)))
                 exist_days -= 1
                 current_day += 1
 
@@ -116,7 +116,7 @@ def button(bot, update):
     query = update.callback_query
     _type = int(query.data)
 
-    res = get_scl_with(dm.get_day_over(_type - dm.today.weekday()))
+    res = get_scl_with(date_manager.get_day_over(_type - dm.now().weekday()))
 
     bot.edit_message_text(text=res,
                           chat_id=query.message.chat_id,
@@ -257,12 +257,12 @@ notified = False
 
 
 def callback_scl_notifier(bot, job):
-    if dm.today.weekday() == 5 or dm.today.weekday() == 6:
+    if dm.now().weekday() == 5 or dm.now().weekday() == 6:
         return
 
     global notified
-    current_hour = datetime.datetime.now().hour
-    if 8 <= current_hour < 9 and not notified:
+    current_hour = dm.now().hour
+    if 7 <= current_hour < 8 and not notified:
         notified = True
         conn = sqlite3.connect(_db_name)
 

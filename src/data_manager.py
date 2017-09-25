@@ -1,8 +1,9 @@
 # coding=utf-8
 import logging
 import sqlite3
+import const
 
-logging.basicConfig(filename='log.txt', level=logging.INFO,
+logging.basicConfig(filename=const.root_path + '/log.txt', level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 

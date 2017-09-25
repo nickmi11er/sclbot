@@ -4,7 +4,7 @@ from datetime import datetime
 import const
 import data_manager as dm
 
-wb = load_workbook(filename=const.root_path + '/assets/schedule.xlsx')
+wb = load_workbook(filename=const.assets_dir + '/schedule.xlsx')
 ws = wb.worksheets[0]
 
 scl_time = {
@@ -76,7 +76,7 @@ def scl_info(conn):
     time_now = datetime.today()
     time_end = datetime.strptime(meta[2], '%d.%m.%Y')
 
-    weeknum = (time_now.day - time_start.day) / 7
+    weeknum = (time_now - time_start).days / 7 + 1
     percentage = str(int((float((time_now - time_start).days) / float((time_end - time_start).days)) * 100))
 
     res = {
