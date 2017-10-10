@@ -60,8 +60,11 @@ def get_scl_with(dt):
 
     out = u"Расписание пар на " + unicode(date_manager.rus_week_day[date.weekday()], 'utf8') + ": \n\n"
     res = scl_manager.get_with(date)
-    for r in res:
-        out = out + r + "\n"
+    if res:
+        for r in res:
+            out = out + r + "\n"
+    else:
+        out = u"Пар нет. Отдыхай!"
 
     return out
 
