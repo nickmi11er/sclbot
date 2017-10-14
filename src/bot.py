@@ -62,6 +62,12 @@ def get_scl_with(dt):
     res = scl_manager.get_with(date)
     if res:
         for r in res:
+            if '**' in r:
+                #print(u' '.join(r).encode('utf-8'))
+                r = r.replace('**', '')
+
+                r = u'❗' + r
+
             out = out + r + "\n"
     else:
         out = u"Пар нет. Отдыхай!"
@@ -70,9 +76,16 @@ def get_scl_with(dt):
 
 
 # CommandHandler: Расписание пар на текущий день
-def schedule(bot, update):
+def schedule(bot, update, args):
+    res = u''
+
+    if len(args) > 0:
+        res = get_scl_with(date_manager.get_day_over(int(args[0])))   
+    else:
+        res = get_scl_with(None) 
+
     log_bot_request(update.message, 'Schedule')
-    update.message.reply_text(get_scl_with(None))
+    update.message.reply_text(res)
 
 
 # CommandHandler: Расписание пар на заданный день недели
@@ -235,7 +248,7 @@ def day_x(bot, update):
     conn.close()
 
 
-dispatcher.add_handler(CommandHandler('schedule', schedule))
+dispatcher.add_handler(CommandHandler('schedule', schedule, pass_args=True))
 dispatcher.add_handler(CommandHandler('schedule_with', schedule_with))
 dispatcher.add_handler(CommandHandler('academy_plan', academy_plan))
 dispatcher.add_handler(CommandHandler('my_id', my_id))

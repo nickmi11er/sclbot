@@ -59,7 +59,7 @@ def get_with(time):
 
                     if ws[cell_name].value:
                         val = ws[cell_name].value
-                        if isinstance(val, float):
+                        if isinstance(val, float) or isinstance(val, long):
                             val = str(val)
 
                         task_name += "  " + val
