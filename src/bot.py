@@ -88,15 +88,12 @@ def schedule(bot, update, args):
     update.message.reply_text(res)
 
 
-# CommandHandler: Расписание пар на заданный день недели
-def schedule_with(bot, update):
-    log_bot_request(update.message, 'Schedule With')
+def get_weekday_kb(current_day, is_nex_week):
 
-    future_days = 7 - dm.now().weekday()
+    future_days = 7 - current_day
+    exist_days = future_days
 
     keyboard = []
-    exist_days = future_days
-    current_day = dm.now().weekday()
 
     for i in range(0, (future_days / 3)):
         row = []
@@ -107,23 +104,54 @@ def schedule_with(bot, update):
                 continue
 
             if i == 0 and j == 0 and exist_days > 0:
-                row.append(InlineKeyboardButton("Сегодня", callback_data=str(current_day)))
+                day_name = ''
+                start_day = current_day
+                if not is_nex_week:
+                    day_name = "Сегодня"
+                else:
+                    start_day = current_day + 7
+                    day_name = date_manager.rus_week_day[current_day]
+
+                row.append(InlineKeyboardButton(day_name, callback_data=str(start_day)))
                 exist_days -= 1
                 current_day += 1
                 continue
             if i == 0 and j == 1 and exist_days > 0:
-                row.append(InlineKeyboardButton("Завтра", callback_data=str(current_day)))
+                day_name = ''
+                start_day = current_day
+                if not is_nex_week:
+                    day_name = "Завтра"
+                else:
+                    start_day = current_day + 7
+                    day_name = date_manager.rus_week_day[current_day]
+
+                row.append(InlineKeyboardButton(day_name, callback_data=str(start_day)))
                 exist_days -= 1
                 current_day += 1
                 continue
             if exist_days > 0:
-                row.append(InlineKeyboardButton(date_manager.rus_week_day[current_day], callback_data=str(current_day)))
+                start_day = current_day
+                if is_nex_week:
+                    start_day = current_day + 7
+                row.append(InlineKeyboardButton(date_manager.rus_week_day[current_day], callback_data=str(start_day)))
                 exist_days -= 1
                 current_day += 1
 
         keyboard.append(row)
 
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    if not is_nex_week:
+        keyboard.append([InlineKeyboardButton("След. неделя", callback_data='-1')])
+    else:
+        keyboard.append([InlineKeyboardButton("Пред. неделя", callback_data='-2')])
+
+    return keyboard
+
+
+# CommandHandler: Расписание пар на заданный день недели
+def schedule_with(bot, update):
+    log_bot_request(update.message, 'Schedule With')
+    
+    reply_markup = InlineKeyboardMarkup(get_weekday_kb(dm.now().weekday(), False))
 
     update.message.reply_text('На какой день недели?', reply_markup=reply_markup)
 
@@ -132,11 +160,27 @@ def button(bot, update):
     query = update.callback_query
     _type = int(query.data)
 
-    res = get_scl_with(date_manager.get_day_over(_type - dm.now().weekday()))
+    if _type == -1:
 
-    bot.edit_message_text(text=res,
+        reply_markup = InlineKeyboardMarkup(get_weekday_kb(0, True))
+        bot.edit_message_text(text='На какой день недели!',
                           chat_id=query.message.chat_id,
-                          message_id=query.message.message_id)
+                          message_id=query.message.message_id,
+                          reply_markup=reply_markup)
+    elif _type == -2:
+
+        reply_markup = InlineKeyboardMarkup(get_weekday_kb(dm.now().weekday(), False))
+        bot.edit_message_text(text='На какой день недели!',
+                          chat_id=query.message.chat_id,
+                          message_id=query.message.message_id,
+                          reply_markup=reply_markup)
+    else:
+        res = get_scl_with(date_manager.get_day_over(_type - dm.now().weekday()))
+
+        bot.edit_message_text(text=res,
+                            chat_id=query.message.chat_id,
+                            message_id=query.message.message_id)
+
 
 
 # CommandHandler: Акакдемический план
@@ -290,7 +334,7 @@ def callback_scl_notifier(bot, job):
         notified = False
 
 
-schedule_notifier = updater.job_queue.run_repeating(callback_scl_notifier, interval=60, first=0)
+schedule_notifier = updater.job_queue.run_repeating(callback_scl_notifier, interval=60*15, first=0)
 print('Schedule notifier started...')
 
 # =================================================================
