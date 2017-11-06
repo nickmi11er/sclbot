@@ -20,7 +20,12 @@ scl_time = {
 # Возвращает следующий символ в алфавите для инкременты столбца таблицы
 # TODO добавить логику при привышении количества букв в алфавите
 def inc_col_name(col_name):
-    return chr(ord(col_name) + 1)
+    if col_name == 'Z':
+        return 'AA'
+    elif len(col_name) > 1:
+        return 'A' + inc_col_name(col_name[1])
+    else:
+        return chr(ord(col_name) + 1)
 
 
 def schedule_time(num):
