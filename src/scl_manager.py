@@ -63,7 +63,7 @@ def choose_task(entity, wleft):
                     return res.group(3)
 
 
-                
+
 
 
 def get_scl(date):
@@ -114,7 +114,7 @@ def get_scl(date):
                     cn = inc_col_name(cn)
                     fullnm = cn + str(daynum)
                     cl_num = ws2[fullnm].value
-                    if isinstance(cl_num, long):
+                    if isinstance(cl_num, long) or isinstance(cl_num, float):
                         cl_num = str(cl_num)
                     else:
                         cl_num = cl_num.encode('utf-8')
