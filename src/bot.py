@@ -10,6 +10,7 @@ import data_manager
 import date_manager
 import const
 import scl_manager
+import telecal
 
 logging.basicConfig(filename=const.root_path + '/log.txt', level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -19,6 +20,8 @@ _bot_token = '299937300:AAG7z1stwDIBPTBwr4L_sg1dlq2A9TaFIiA'
 
 updater = Updater(_bot_token)
 dispatcher = updater.dispatcher
+
+current_shown_dates={}
 
 
 def log_bot_request(message, action):
@@ -58,21 +61,24 @@ def get_scl_with(dt):
     if dt is not None:
         date = dt
 
-    out = u"Расписание пар на " + unicode(date_manager.rus_week_day[date.weekday()], 'utf8') + ": \n\n"
-    res = scl_manager.get_with(date)
+    if date < scl_manager.start_dt:
+        return u'Учеба еще на началась'
+
+    out = "Расписание пар на " + date_manager.rus_week_day[date.weekday()] + ": \n\n"
+    res = scl_manager.get_scl(date)
+    #res = scl_manager.get_with(date)
     if res:
         for r in res:
-            if '**' in r:
-                #print(u' '.join(r).encode('utf-8'))
-                r = r.replace('**', '')
-
-                r = u'❗' + r
-
             out = out + r + "\n"
     else:
         out = u"Пар нет. Отдыхай!"
 
     return out
+
+
+def updscl(bot, update):
+    scl_manager.updscl()
+    update.message.reply_text('Расписание успешно обновлено!')
 
 
 # CommandHandler: Расписание пар на текущий день
@@ -139,11 +145,14 @@ def get_weekday_kb(current_day, is_nex_week):
 
         keyboard.append(row)
 
+    row = []
     if not is_nex_week:
-        keyboard.append([InlineKeyboardButton("След. неделя", callback_data='-1')])
+        row.append(InlineKeyboardButton("След. неделя", callback_data='-1'))
     else:
-        keyboard.append([InlineKeyboardButton("Пред. неделя", callback_data='-2')])
+        row.append(InlineKeyboardButton("Пред. неделя", callback_data='-2'))
 
+    row.append(InlineKeyboardButton("Календарь", callback_data='-3'))
+    keyboard.append(row)
     return keyboard
 
 
@@ -158,29 +167,98 @@ def schedule_with(bot, update):
 
 def button(bot, update):
     query = update.callback_query
-    _type = int(query.data)
+    if query.data[0:13] == 'calendar-day-':
+        chat_id = query.message.chat_id
+        saved_date = current_shown_dates.get(chat_id)
+        if(saved_date is not None):
+            day=query.data[13:]
+            date = dm.strptime('{}{}{}'.format(saved_date[0],int(saved_date[1]), int(day)), '%Y%m%d')
+            res = get_scl_with(date)
+            bot.edit_message_text(text=res,
+                            chat_id=query.message.chat_id,
+                            message_id=query.message.message_id,
+                            reply_markup=None)
+            bot.answer_callback_query(query.id, text="")
+        return
 
-    if _type == -1:
+    if query.data == 'next-month':
+        chat_id = query.message.chat_id
+        saved_date = current_shown_dates.get(chat_id)
+        if(saved_date is not None):
+            year,month = saved_date
+            month+=1
+            if month>12:
+                month=1
+                year+=1
+            date = (year,month)
+            current_shown_dates[chat_id] = date
+            markup= telecal.create_calendar(year,month)
+            bot.edit_message_text(text="Выберите дату.", 
+                        chat_id=query.message.chat_id,
+                        message_id=query.message.message_id,
+                        reply_markup=markup)
+            bot.answer_callback_query(query.id, text="")
+        return
 
-        reply_markup = InlineKeyboardMarkup(get_weekday_kb(0, True))
-        bot.edit_message_text(text='На какой день недели!',
-                          chat_id=query.message.chat_id,
-                          message_id=query.message.message_id,
-                          reply_markup=reply_markup)
-    elif _type == -2:
+    if query.data == 'previous-month':
+        chat_id = query.message.chat.id
+        saved_date = current_shown_dates.get(chat_id)
+        if(saved_date is not None):
+            year,month = saved_date
+            month-=1
+            if month<1:
+                month=12
+                year-=1
+            date = (year,month)
+            current_shown_dates[chat_id] = date
+            markup= telecal.create_calendar(year,month)
+            bot.edit_message_text("Выберите дату.", 
+                        chat_id=query.message.chat_id,
+                        message_id=query.message.message_id,
+                        reply_markup=markup)
+            bot.answer_callback_query(query.id, text="")
+        return
 
+    if query.data == 'back':
         reply_markup = InlineKeyboardMarkup(get_weekday_kb(dm.now().weekday(), False))
-        bot.edit_message_text(text='На какой день недели!',
-                          chat_id=query.message.chat_id,
-                          message_id=query.message.message_id,
-                          reply_markup=reply_markup)
+        bot.edit_message_text(text='На какой день недели?',
+                        chat_id=query.message.chat_id,
+                        message_id=query.message.message_id,
+                        reply_markup=reply_markup)
+        bot.answer_callback_query(query.id, text="")
+        return
+    
+    _type = int(query.data)
+    if _type == -1:
+        reply_markup = InlineKeyboardMarkup(get_weekday_kb(0, True))
+        bot.edit_message_text(text='На какой день недели?',
+                        chat_id=query.message.chat_id,
+                        message_id=query.message.message_id,
+                        reply_markup=reply_markup)
+    elif _type == -2:
+        reply_markup = InlineKeyboardMarkup(get_weekday_kb(dm.now().weekday(), False))
+        bot.edit_message_text(text='На какой день недели?',
+                        chat_id=query.message.chat_id,
+                        message_id=query.message.message_id,
+                        reply_markup=reply_markup)
+    elif _type == -3:
+        now = dm.now() 
+        chat_id = query.message.chat_id
+        date = (now.year,now.month)
+        current_shown_dates[chat_id] = date
+        reply_markup = telecal.create_calendar(now.year, now.month)
+        bot.edit_message_text(text='Выберите дату.',
+                        chat_id=query.message.chat_id,
+                        message_id=query.message.message_id,
+                        reply_markup=reply_markup)
     else:
         res = get_scl_with(date_manager.get_day_over(_type - dm.now().weekday()))
-
         bot.edit_message_text(text=res,
                             chat_id=query.message.chat_id,
                             message_id=query.message.message_id)
 
+    bot.answer_callback_query(query.id, text="")
+            
 
 
 # CommandHandler: Акакдемический план
@@ -292,20 +370,21 @@ def day_x(bot, update):
     conn.close()
 
 
-dispatcher.add_handler(CommandHandler('schedule', schedule, pass_args=True))
-dispatcher.add_handler(CommandHandler('schedule_with', schedule_with))
-dispatcher.add_handler(CommandHandler('academy_plan', academy_plan))
+dispatcher.add_handler(CommandHandler('s', schedule, pass_args=True))
+dispatcher.add_handler(CommandHandler('sb', schedule_with))
+dispatcher.add_handler(CommandHandler('ap', academy_plan))
 dispatcher.add_handler(CommandHandler('my_id', my_id))
-dispatcher.add_handler(CommandHandler('notify_me', notify_me))
-dispatcher.add_handler(CommandHandler('unsubscribe', unsubscribe))
+dispatcher.add_handler(CommandHandler('notime', notify_me))
+dispatcher.add_handler(CommandHandler('unsub', unsubscribe))
 dispatcher.add_handler(CommandHandler('day_x', day_x))
 dispatcher.add_handler(CallbackQueryHandler(button))
 dispatcher.add_error_handler(error)
-dispatcher.add_handler(CommandHandler("lecturers_list", lecturers_list))
+dispatcher.add_handler(CommandHandler("ll", lecturers_list))
 
 # Админский блок
 dispatcher.add_handler(CommandHandler('users_list', users_list))
 dispatcher.add_handler(CommandHandler('add_user', add_user, pass_args=True))
+dispatcher.add_handler(CommandHandler("updscl", updscl)) # add permission
 
 updater.start_polling()
 print('Bot is started...')
