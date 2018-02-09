@@ -3,8 +3,8 @@ from datetime import datetime as dm
 import logging
 import sqlite3
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters
 
 import data_manager
 import date_manager
@@ -370,6 +370,43 @@ def day_x(bot, update):
     conn.close()
 
 
+def start(bot, update):
+    log_bot_request(update.message, 'Start')
+    markup = []
+    row = []
+    row.append(KeyboardButton('Расписание на сегодня'))
+    row.append(KeyboardButton('Расписание на указанный день'))
+    markup.append(row)
+
+    row = []
+    row.append(KeyboardButton('Академический план'))
+    row.append(KeyboardButton('Уведомлять о событиях'))
+    markup.append(row)
+
+    row = []
+    row.append(KeyboardButton('Отписаться от уведомлений'))
+    row.append(KeyboardButton('Выбрать группу'))
+    markup.append(row)
+    keyboard = ReplyKeyboardMarkup(markup, resize_keyboard=True)
+    bot.send_message(chat_id = update.message.chat_id, text = 'Выберите команду', reply_markup=keyboard)
+
+
+def echo(bot, update):
+    if update.message.text == u'Расписание на сегодня':
+        schedule(bot, update, [])
+    elif update.message.text == u'Расписание на указанный день':
+        schedule_with(bot, update)
+    elif update.message.text == u'Академический план':
+        academy_plan(bot, update)
+    elif update.message.text == u'Уведомлять о событиях':
+        notify_me(bot, update)
+    elif update.message.text == u'Отписаться от уведомлений':
+        unsubscribe(bot, update)
+    elif update.message.text == u'Выбрать группу':
+        update.message.reply_text('Данная функция временно недоступна')
+        
+
+
 dispatcher.add_handler(CommandHandler('s', schedule, pass_args=True))
 dispatcher.add_handler(CommandHandler('sb', schedule_with))
 dispatcher.add_handler(CommandHandler('ap', academy_plan))
@@ -377,6 +414,12 @@ dispatcher.add_handler(CommandHandler('my_id', my_id))
 dispatcher.add_handler(CommandHandler('notime', notify_me))
 dispatcher.add_handler(CommandHandler('unsub', unsubscribe))
 dispatcher.add_handler(CommandHandler('day_x', day_x))
+dispatcher.add_handler(CommandHandler('start', start))
+
+echo_handler = MessageHandler(Filters.text, echo)
+dispatcher.add_handler(echo_handler)
+
+
 dispatcher.add_handler(CallbackQueryHandler(button))
 dispatcher.add_error_handler(error)
 dispatcher.add_handler(CommandHandler("ll", lecturers_list))
