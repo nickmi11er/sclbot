@@ -96,16 +96,16 @@ def schedule(bot, update, args):
 
 def get_weekday_kb(current_day, is_nex_week):
 
-    future_days = 7 - current_day
+    future_days = 7 - current_day # оставшееся количество дней в неделе
     exist_days = future_days
 
     keyboard = []
 
-    for i in range(0, (future_days / 3)):
+    for i in range(0, (future_days / 3)):  # i - количество строк
         row = []
 
-        for j in range(0, 3):
-            if current_day == 5 or current_day == 6:
+        for j in range(0, 3):   # j - количество столбцов
+            if current_day == 6:    # если воскресенье, пропускаем цикл
                 exist_days -= 1
                 continue
 
@@ -439,7 +439,7 @@ notified = False
 
 
 def callback_scl_notifier(bot, job):
-    if dm.now().weekday() == 5 or dm.now().weekday() == 6:
+    if dm.now().weekday() == 6:
         return
 
     global notified
