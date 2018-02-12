@@ -1,4 +1,5 @@
-/src/log.txt
-/log.txt
 .idea
 /assets/*
+*.pyc
+*.DS_Store
+**/log.txt
