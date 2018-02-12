@@ -43,24 +43,19 @@ def inc_col_name(col_name):
 
 # Разбивает строку на три составляющие: 
 # 1 группа - номера недель, в которых стоит предмет 
-# 2 группа - четность недели 
 # 3 группа - название самого предмета 
 # На основании переданного номера недели, возвращает название предмета
 def choose_task(entity, wleft):
-    if wleft % 2 == 0:
-        evnweek = 'ч'
-    else:
-        evnweek = 'н'
     entity = entity.encode('utf-8')
     res = pt.match(entity)
     if res is not None and res.group(1) is not None:
-        if res.group(2) == evnweek:
-            return res.group(3)
-        else:
-            num_weeks = re.split(r',', res.group(1))
-            for num in num_weeks:
-                if int(num) == int(wleft):
-                    return res.group(3)
+        num_weeks = re.split(r',', res.group(1))
+        for num in num_weeks:
+            if int(num) == int(wleft):
+                return res.group(3)
+    else:
+        return 'kostil'
+            
 
 
 
@@ -123,9 +118,10 @@ def get_scl(date):
                     ent = re.split(r'\n', val)
                     if len(ent) == 1:
                         res = choose_task(ent[0], wleft)
-                        if res is None:
-                            res = ent[0].encode('utf-8')
-                        result.append('{} {} ({}){}'.format(time, res, cl_num, task_tp))
+                        if res is not None:
+                            if res == 'kostil':
+                                res = ent[0].encode('utf-8')
+                            result.append('{} {} ({}){}'.format(time, res, cl_num, task_tp))
                     # если существует вариативность, выбираем необходимый предмет
                     elif len(ent) > 1:
                         ch_flag = 0
