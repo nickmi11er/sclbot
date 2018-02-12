@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 import calendar
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
