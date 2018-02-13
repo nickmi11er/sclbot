@@ -12,7 +12,7 @@ import const
 import scl_manager
 import telecal
 from store_manager import SettingStore
-import os
+
 
 s_store = SettingStore()
 logging.basicConfig(filename=const.root_path + '/log.txt', level=logging.INFO,
