@@ -7,14 +7,24 @@ if [ -z "$env" ] || [ ! -d "$env" ] ; then
   exit 1
 fi
 
-echo 'Activating virtualenv'
+echo 'Checking virtualenv'
 
-#source "$env/bin/activate"
 
-if [ ! $? -eq  0 ]; then
-  echo 'Something went wrong. Bye'
+if [ ! -f "$env/bin/pip" ] || [ ! -f "$env/bin/python" ] ; then
+  echo 'This is not virtualenv'
   exit 1
 fi
+
+echo 'Checking python version....'
+
+v="$($env/bin/python -V 2>&1)"
+
+if [ -z "$v" ]; then
+  echo "Sorry, we need Python 2.7.x"
+  exit 1
+fi
+
+
 
 echo 'Installing requirements from requirements.txt'
 
