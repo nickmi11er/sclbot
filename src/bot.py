@@ -173,7 +173,7 @@ def button(bot, update):
     query = update.callback_query
     if query.data[0:3] == 'gp-':
         gp_id = query.data[3:]
-        conn = sqlite3.connect(_db_name)
+        conn = sqlite3.connect(DB_NAME)
         user = query.from_user
         username = ''
         if user.first_name is not None:
@@ -431,7 +431,7 @@ def get_groups_kb(conn):
 
 def start(bot, update):
     log_bot_request(update.message, 'Start')
-    conn = sqlite3.connect(_db_name)
+    conn = sqlite3.connect(DB_NAME)
     user = data_manager.get_user(conn, update.message.from_user.id)
     if user is not None:
         kb = get_menu_kb()
