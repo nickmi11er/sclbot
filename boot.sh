@@ -24,3 +24,5 @@ else
   echo 'Cannot decrypt file. Check password and try again'
   exit 1
 fi
+git log --pretty=format:'%H' -n 1 > assets/rev.hash
+
