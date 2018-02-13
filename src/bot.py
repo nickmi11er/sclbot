@@ -444,7 +444,7 @@ def callback_scl_notifier(bot, job):
 
     global notified
     current_hour = dm.now().hour
-    if 7 <= current_hour < 8 and not notified:
+    if 20 <= current_hour < 21 and not notified:
         notified = True
         conn = sqlite3.connect(_db_name)
 
