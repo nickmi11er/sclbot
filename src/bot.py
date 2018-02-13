@@ -167,6 +167,24 @@ def schedule_with(bot, update):
 
 def button(bot, update):
     query = update.callback_query
+    if query.data[0:3] == 'gp-':
+        gp_id = query.data[3:]
+        conn = sqlite3.connect(_db_name)
+        user = query.from_user
+        username = ''
+        if user.first_name is not None:
+            username = user.first_name.encode('utf-8')
+        data_manager.add_or_update_user(conn, username, user.id, 2, gp_id)
+        conn.close()
+        kb = get_menu_kb()
+        bot.edit_message_text(text='Данные обновлены',
+                            chat_id=query.message.chat_id,
+                            message_id=query.message.message_id,
+                            reply_markup=None)
+        #query.message.reply_text('Теперь вы можете воспользоваться командами', reply_markup=kb)
+        bot.send_message(chat_id = query.message.chat_id, text = 'Теперь вы можете воспользоваться командами', reply_markup=kb)
+        bot.answer_callback_query(query.id, text="")
+        return
     if query.data[0:13] == 'calendar-day-':
         chat_id = query.message.chat_id
         saved_date = current_shown_dates.get(chat_id)
@@ -227,6 +245,9 @@ def button(bot, update):
                         reply_markup=reply_markup)
         bot.answer_callback_query(query.id, text="")
         return
+    if query.data == 'ignore':
+        bot.answer_callback_query(query.id, text="")
+        return
     
     _type = int(query.data)
     if _type == -1:
@@ -266,7 +287,7 @@ def academy_plan(bot, update):
     log_bot_request(update.message, 'Academy Plan')
     conn = sqlite3.connect(_db_name)
 
-    update.message.reply_text(data_manager.get_academy_plan(conn))
+    update.message.reply_text(data_manager.get_academy_plan())
     conn.close()
 
 
@@ -321,7 +342,7 @@ def error(bot, update, _error):
 def lecturers_list(bot, update):
     connection = sqlite3.connect(_db_name)
     log_bot_request(update.message, 'get lecturers list')
-    update.message.reply_text(data_manager.get_lecturers(connection))
+    update.message.reply_text(data_manager.get_lecturers())
 
 
 def notify_me(bot, update):
@@ -369,9 +390,9 @@ def day_x(bot, update):
     update.message.reply_text(output)
     conn.close()
 
-
-def start(bot, update):
-    log_bot_request(update.message, 'Start')
+    
+    
+def get_menu_kb():
     markup = []
     row = []
     row.append(KeyboardButton('Расписание на сегодня'))
@@ -388,7 +409,35 @@ def start(bot, update):
     row.append(KeyboardButton('Выбрать группу'))
     markup.append(row)
     keyboard = ReplyKeyboardMarkup(markup, resize_keyboard=True)
-    bot.send_message(chat_id = update.message.chat_id, text = 'Выберите команду', reply_markup=keyboard)
+    return keyboard
+    
+
+def get_groups_kb(conn):
+    groups = data_manager.get_groups(conn)
+    murkup = []
+    
+    for g in groups:
+        row = []
+        row.append(InlineKeyboardButton(g[1], callback_data='gp-' + str(g[0])))
+        murkup.append(row)
+
+    return InlineKeyboardMarkup(murkup)
+
+
+
+def start(bot, update):
+    log_bot_request(update.message, 'Start')
+    conn = sqlite3.connect(_db_name)
+    user = data_manager.get_user(conn, update.message.from_user.id)
+    if user is not None:
+        kb = get_menu_kb()
+        bot.send_message(chat_id = update.message.chat_id, text = 'Выберите команду', reply_markup=kb)
+    else:
+        kb = get_groups_kb(conn)
+        bot.send_message(chat_id = update.message.chat_id, text = 'Выберите группу в которой обучаетесь', reply_markup=kb)
+
+    conn.close()
+        
 
 
 def echo(bot, update):

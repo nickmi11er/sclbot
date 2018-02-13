@@ -13,15 +13,15 @@ def users_list(conn):
 
 
 def get_user(conn, tg_user_id):
-    return conn.cursor().execute("SELECT user_id, username, tg_user_id, role, chat_id FROM users WHERE tg_user_id = ?",
-                                 (tg_user_id,)).fetchone()
+    return conn.cursor().execute("SELECT users.username, users.tg_user_id, users.role FROM users WHERE users.tg_user_id=(?)",
+                                 (tg_user_id, )).fetchone()
 
 
-def add_or_update_user(conn, username, tg_user_id, role):
+def add_or_update_user(conn, username, tg_user_id, role, group_id):
     try:
         username = unicode(username, 'utf8')
-        conn.cursor().execute("INSERT OR REPLACE INTO users (username, tg_user_id, role) VALUES (?, ?, ?)",
-                              (username, tg_user_id, role))
+        conn.cursor().execute("INSERT OR REPLACE INTO users (username, tg_user_id, role, group_id) VALUES (?, ?, ?, ?)",
+                              (username, tg_user_id, role, group_id))
     except sqlite3.DatabaseError as err:
         logging.error(err)
         conn.rollback()
@@ -39,7 +39,8 @@ def delete_user(conn, id):
         conn.commit()
 
 
-def get_lecturers(conn):
+def get_lecturers():
+    conn = sqlite3.connect(const.assets_dir + '/data.sqlite', check_same_thread = False)
     result = u'Список преподавателей:\n\n'
     lecturers = conn.cursor().execute("""SELECT group_concat(s.subj_name) AS subject_name,
                                              (SELECT l1.lecturer_name
@@ -55,10 +56,12 @@ def get_lecturers(conn):
         for subject in subjects:
             result += subject + '\n'
         result += '\n'
+    conn.close()
     return result
 
 
-def get_academy_plan(conn):
+def get_academy_plan():
+    conn = sqlite3.connect(const.assets_dir + '/data.sqlite', check_same_thread = False)
     cursor = conn.cursor()
     res = ""
 
@@ -80,7 +83,7 @@ def get_academy_plan(conn):
         i += 1
 
     res += u"Всего зачетов: " + str(i - 1) + '\n'
-
+    conn.close()
     return res
 
 
@@ -114,3 +117,25 @@ def delete_subscriber(conn, chat_id):
 
 def get_meta(conn):
     return conn.cursor().execute("SELECT group_name, start_date, session_date FROM meta").fetchone()
+
+
+def get_groups(conn):
+    return conn.cursor().execute("SELECT groups.group_id, groups.group_name FROM groups").fetchall()
+
+def set_group(conn, gp_id, user_id):
+    try:
+        conn.cursor().execute('UPDATE users SET group_id = (?) WHERE users.tg_user_id = (?)', (gp_id, user_id))
+    except sqlite3.DatabaseError as err:
+        logging.error(err)
+        conn.rollback()
+    else:
+        conn.commit()
+
+
+#conn = sqlite3.connect(const.assets_dir + '/data.sqlite')
+#user = get_user(conn, '115694888')
+#gs = get_groups(conn)
+#print(gs[0][1])
+    
+
+#print(user)
