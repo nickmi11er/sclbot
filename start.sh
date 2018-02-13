@@ -19,7 +19,7 @@ echo 'Checking python version....'
 
 v="$($env/bin/python -V 2>&1)"
 
-if [ -z "$v" ]; then
+if [[ $v != *"2.7."* ]]; then
   echo "Sorry, we need Python 2.7.x"
   exit 1
 fi
