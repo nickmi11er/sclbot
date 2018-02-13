@@ -11,14 +11,18 @@ import date_manager
 import const
 import scl_manager
 import telecal
+from store_manager import SettingStore
 
+
+s_store = SettingStore()
 logging.basicConfig(filename=const.root_path + '/log.txt', level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-_db_name = const.assets_dir + '/data.sqlite'
-_bot_token = '299937300:AAG7z1stwDIBPTBwr4L_sg1dlq2A9TaFIiA'
+DB_NAME = const._db_name
+BOT_TOKEN = s_store.get('_bot_token')
 
-updater = Updater(_bot_token)
+
+updater = Updater(BOT_TOKEN)
 dispatcher = updater.dispatcher
 
 current_shown_dates={}
@@ -285,7 +289,7 @@ def button(bot, update):
 # CommandHandler: Акакдемический план
 def academy_plan(bot, update):
     log_bot_request(update.message, 'Academy Plan')
-    conn = sqlite3.connect(_db_name)
+    conn = sqlite3.connect(DB_NAME)
 
     update.message.reply_text(data_manager.get_academy_plan())
     conn.close()
@@ -294,7 +298,7 @@ def academy_plan(bot, update):
 # CommandHandler(Admin request): Список пользователей
 def users_list(bot, update):
     log_bot_request(update.message, 'Users List')
-    conn = sqlite3.connect(_db_name)
+    conn = sqlite3.connect(DB_NAME)
 
     if check_permission(conn, update.message.from_user.id):
         res = u"Список пользователей: \n"
@@ -317,7 +321,7 @@ def add_user(update, args):
         res += u"Для добавления пользователя необходимо передать параметры в виде: /add_user id_пользователя роль(1 - " \
                u"админ) имя "
     else:
-        conn = sqlite3.connect(_db_name)
+        conn = sqlite3.connect(DB_NAME)
 
         if check_permission(conn, update.message.from_user.id):
             username = u''
@@ -340,14 +344,14 @@ def error(bot, update, _error):
 
 
 def lecturers_list(bot, update):
-    connection = sqlite3.connect(_db_name)
+    connection = sqlite3.connect(DB_NAME)
     log_bot_request(update.message, 'get lecturers list')
     update.message.reply_text(data_manager.get_lecturers())
 
 
 def notify_me(bot, update):
     log_bot_request(update.message, 'Notify Me')
-    conn = sqlite3.connect(_db_name)
+    conn = sqlite3.connect(DB_NAME)
 
     msg = ''
     subscriber = data_manager.get_subscriber(conn, update.message.chat.id)
@@ -363,7 +367,7 @@ def notify_me(bot, update):
 
 def unsubscribe(bot, update):
     log_bot_request(update.message, 'Unsubscribe')
-    conn = sqlite3.connect(_db_name)
+    conn = sqlite3.connect(DB_NAME)
 
     msg = ''
     subscriber = data_manager.get_subscriber(conn, update.message.chat.id)
@@ -379,7 +383,7 @@ def unsubscribe(bot, update):
 
 def day_x(bot, update):
     log_bot_request(update.message, 'Day X')
-    conn = sqlite3.connect(_db_name)
+    conn = sqlite3.connect(DB_NAME)
 
     output = ''
     res = scl_manager.scl_info(conn)
@@ -495,7 +499,7 @@ def callback_scl_notifier(bot, job):
     current_hour = dm.now().hour
     if 20 <= current_hour < 21 and not notified:
         notified = True
-        conn = sqlite3.connect(_db_name)
+        conn = sqlite3.connect(DB_NAME)
 
         for subscriber in data_manager.get_subscribers(conn):
             bot.send_message(chat_id=subscriber[0], text=get_scl_with(None))
