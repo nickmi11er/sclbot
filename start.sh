@@ -35,7 +35,7 @@ if [ ! $? -eq 0 ]; then
   exit 1
 fi
 
-if [ -z "$2" ]; then
+if [ $2 != "prod" ]; then
   "$env/bin/python" -B src/bot.py & 
 else
   "$env/bin/python" src/bot.py &
