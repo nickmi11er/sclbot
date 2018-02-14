@@ -5,7 +5,7 @@ import const
 
 logging.basicConfig(filename=const.root_path + '/log.txt', level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
+DB_NAME = const._db_name
 
 def users_list(conn):
     return conn.cursor().execute(
@@ -40,7 +40,7 @@ def delete_user(conn, id):
 
 
 def get_lecturers():
-    conn = sqlite3.connect(const.assets_dir + '/data.sqlite', check_same_thread = False)
+    conn = sqlite3.connect(DB_NAME, check_same_thread = False)
     result = u'Список преподавателей:\n\n'
     lecturers = conn.cursor().execute("""SELECT group_concat(s.subj_name) AS subject_name,
                                              (SELECT l1.lecturer_name
