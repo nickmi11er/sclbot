@@ -33,9 +33,9 @@ class SettingStore(Store):
         self.dct = dict()
         self.storename = 'settings.dat' if storename is None else storename
         with open(const.assets_dir+'/'+self.storename, 'r') as f:
-            ln = f.readline().rstrip()
-            l = [x.strip().replace('\'', '') for x in ln.split('=')]
-            self.dct[l[0]] = l[1]
-    
+            for line in f:
+                ln = line.rstrip()
+                l = [x.strip().replace('\'', '') for x in ln.split('=')]
+                self.dct[l[0]] = l[1]
 
     

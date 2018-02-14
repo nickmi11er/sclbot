@@ -35,10 +35,10 @@ if [ ! $? -eq 0 ]; then
   exit 1
 fi
 
-if [ $2 != "prod" ]; then
-  "$env/bin/python" -B src/bot.py & 
+if [[ $2 != "prod" ]]; then
+  env MODE='test' "$env/bin/python" -B src/bot.py & 
 else
-  "$env/bin/python" src/bot.py &
+  env MODE='prod' "$env/bin/python" src/bot.py &
 fi
 
 t_pid=$!

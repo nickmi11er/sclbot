@@ -19,7 +19,7 @@ logging.basicConfig(filename=const.root_path + '/log.txt', level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 DB_NAME = const._db_name
-BOT_TOKEN = s_store.get('_bot_token')
+BOT_TOKEN = s_store.get(const._bot_token_name)
 
 
 updater = Updater(BOT_TOKEN)
