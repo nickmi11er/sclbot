@@ -116,6 +116,7 @@ def delete_subscriber(conn, chat_id):
 
 
 def get_meta(conn):
+    conn = sqlite3.connect(const.assets_dir + '/data.sqlite', check_same_thread = False)
     return conn.cursor().execute("SELECT group_name, start_date, session_date FROM meta").fetchone()
 
 
