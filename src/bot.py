@@ -12,7 +12,8 @@ import const
 import scl_manager
 import telecal
 from store_manager import SettingStore
-
+import signal
+import os
 
 s_store = SettingStore()
 logging.basicConfig(filename=const.root_path + '/log.txt', level=logging.INFO,
@@ -27,6 +28,11 @@ dispatcher = updater.dispatcher
 
 current_shown_dates={}
 
+def sig_handler(signum, frame):
+    print "Recieve signal to suicide... PID = {}".format(os.getpid())
+    os._exit(0)
+
+signal.signal(signal.SIGUSR1, sig_handler)
 
 def log_bot_request(message, action):
     user = message.from_user

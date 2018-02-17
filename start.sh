@@ -36,14 +36,14 @@ if [ ! $? -eq 0 ]; then
 fi
 
 if [[ $2 != "prod" ]]; then
-  env MODE='test' "$env/bin/python" -B src/bot.py & 
+  env MODE='test' BOT_ENV="$env" "$env/bin/python" -B src/socket_cli/serve.py & 
 else
-  env MODE='prod' "$env/bin/python" src/bot.py &
+  env MODE='prod' BOT_ENV="$env" "$env/bin/python" src/socket_cli/serve.py &
 fi
 
 t_pid=$!
 
-printf "Alright!\nBot is started! (PID = $t_pid)\n"
+printf "Alright!\nBot is started! (CLI PID = $t_pid)\n"
 
 #deactivate
 
