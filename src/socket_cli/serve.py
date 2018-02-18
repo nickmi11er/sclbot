@@ -77,6 +77,12 @@ def do(cmd):
             ans = "[CLI] Stopped."
         else:
             ans = "[CLI] Running. ID = {}.".format(running_pid)
+        h = ''
+        with open('assets/rev.hash') as f:
+            for line in f:
+                h+=line.strip()
+        if h != '':
+            ans+='\n' + 'Running version = ' + h
     return ans
 
 class MySocketHandler(SocketServer.BaseRequestHandler):
