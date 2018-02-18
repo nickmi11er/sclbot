@@ -19,7 +19,7 @@ if [ ! -d "assets" ]; then
 fi
 ./crypt.py dec "$filename" "assets/settings.dat"
 if [ $? -eq 0 ]; then
-  echo 'Successfully encrypted settings file. Moving on'
+  echo 'Successfully decrypt settings file. Moving on'
 else
   echo 'Cannot decrypt file. Check password and try again'
   exit 1
