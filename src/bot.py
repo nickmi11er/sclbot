@@ -95,12 +95,16 @@ def updscl(bot, update):
 # CommandHandler: Расписание пар на текущий день
 def schedule(bot, update, args):
     res = u''
-    user = update.message.from_user
+
+    if private_chat(update.message.chat):
+        id = update.message.from_user.id
+    else:
+        id = update.message.chat.id
 
     if len(args) > 0:
-        res = get_scl_with(date_manager.get_day_over(int(args[0])), user.id)   
+        res = get_scl_with(date_manager.get_day_over(int(args[0])), id)   
     else:
-        res = get_scl_with(None, user.id) 
+        res = get_scl_with(None, id) 
 
     log_bot_request(update.message, 'Schedule')
     update.message.reply_text(res)
@@ -116,13 +120,23 @@ def schedule_with(bot, update):
 
 def button(bot, update):
     query = update.callback_query
+    username = ''
     if query.data[0:3] == 'gp-':
-        gp_id = query.data[3:]
-        user = query.from_user
-        username = ''
-        if user.first_name is not None:
-            username = user.first_name.encode('utf-8')
+        if query.data[3:5] == 'p-':
+            gp_id = query.data[5:]
+            user = query.message.chat
+            if user.title:
+                username = user.title.encode('utf-8')
+        else:
+            gp_id = query.data[3:]
+            user = query.from_user
+            if user.first_name:
+                username = user.first_name.encode('utf-8')
+            if user.last_name:
+                username += ' {}'.format(user.last_name.encode('utf-8'))
+        
         data_manager.add_or_update_user(username, user.id, 2, gp_id)
+
         keyboard = kb.menu_kb()
         bot.edit_message_text(text='Группа успешно обновлена',
                             chat_id=query.message.chat_id,
@@ -133,12 +147,15 @@ def button(bot, update):
         return
     if query.data[0:13] == 'calendar-day-':
         chat_id = query.message.chat_id
-        user = query.from_user
+        if private_chat(query.message.chat):
+            id = query.from_user.id
+        else:
+            id = query.message.chat.id
         saved_date = current_shown_dates.get(chat_id)
         if(saved_date is not None):
             day=query.data[13:]
             date = dm.strptime('{}{}{}'.format(saved_date[0],int(saved_date[1]), int(day)), '%Y%m%d')
-            res = get_scl_with(date, user.id)
+            res = get_scl_with(date, id)
             bot.edit_message_text(text=res,
                             chat_id=query.message.chat_id,
                             message_id=query.message.message_id,
@@ -220,8 +237,11 @@ def button(bot, update):
                         message_id=query.message.message_id,
                         reply_markup=reply_markup)
     else:
-        user = query.from_user
-        res = get_scl_with(date_manager.get_day_over(_type - dm.now().weekday()), user.id)
+        if private_chat(query.message.chat):
+            id = query.from_user.id
+        else:
+            id = query.message.chat.id
+        res = get_scl_with(date_manager.get_day_over(_type - dm.now().weekday()), id)
         bot.edit_message_text(text=res,
                             chat_id=query.message.chat_id,
                             message_id=query.message.message_id)
@@ -323,15 +343,28 @@ def day_x(bot, update):
 
 def start(bot, update):
     log_bot_request(update.message, 'Start')
-    user = data_manager.get_user(update.message.from_user.id)
+    if private_chat(update.message.chat):
+        user = data_manager.get_user(update.message.from_user.id)
+    else:
+        user = data_manager.get_user(update.message.chat.id)
+
     if user is not None:
         keyboard = kb.menu_kb()
         bot.send_message(chat_id = update.message.chat_id, text = 'Выберите команду', reply_markup=keyboard)
     else:
         groups = data_manager.get_groups()
-        keyboard = kb.groups_kb(groups)
-        bot.send_message(chat_id = update.message.chat_id, text = 'Выберите учебную группу', reply_markup=keyboard)
-        
+        keyboard = kb.groups_kb(groups, private_chat(update.message.chat))
+        res = 'Выберите учебную группу'
+        if not  private_chat(update.message.chat):
+            res = 'В данный момент я нахожусь в групповом чате. Выбранная группа будет одинаковой для всех членов чата.\n' + res
+        bot.send_message(chat_id = update.message.chat_id, text = res, reply_markup=keyboard)
+
+
+def private_chat(chat):
+    if chat.type == 'private':
+        return True
+    else:
+        return False     
 
 
 def filter(bot, update):
@@ -347,8 +380,12 @@ def filter(bot, update):
         unsubscribe(bot, update)
     elif update.message.text == u'Выбрать группу':
         groups = data_manager.get_groups()
-        keyboard = kb.groups_kb(groups)
-        user = data_manager.get_user(update.message.from_user.id)
+        private = private_chat(update.message.chat)
+        keyboard = kb.groups_kb(groups, private)
+        if private:
+            user = data_manager.get_user(update.message.from_user.id)
+        else:
+            user = data_manager.get_user(update.message.chat.id)
         update.message.reply_text(text = u'Ваша текущая группа: {}\nВыберите учебную группу'.format(user[3]), reply_markup=keyboard)
         
 

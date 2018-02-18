@@ -115,12 +115,17 @@ def menu_kb():
     return keyboard
 
 
-def groups_kb(groups):
+def groups_kb(groups, private_ch):
     murkup = []
+
+    if private_ch:
+        pref = 'gp-'
+    else:
+        pref = 'gp-p-'
     
     for g in groups:
         row = []
-        row.append(InlineKeyboardButton(g[1], callback_data='gp-' + str(g[0])))
+        row.append(InlineKeyboardButton(g[1], callback_data=pref + str(g[0])))
         murkup.append(row)
 
     return InlineKeyboardMarkup(murkup)
