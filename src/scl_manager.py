@@ -74,7 +74,7 @@ def _get_scl(gp_nm, date):
         for cell in col:
             cv = cell.value
             if cv and int(cell.row) == 2:
-                if not isinstance(cv, long):
+                if isinstance(cv, basestring):
                     cv = cv.replace(' ', '')
             # нашли нужную группу
             if cv == gp_nm:
