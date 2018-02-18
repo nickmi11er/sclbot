@@ -21,7 +21,7 @@ def users_list():
 
 def get_user(tg_user_id):
     conn = connect()
-    user = conn.cursor().execute("SELECT users.username, users.tg_user_id, users.role FROM users WHERE users.tg_user_id=(?)",
+    user = conn.cursor().execute("SELECT users.username, users.tg_user_id, users.role, groups.group_name FROM users INNER JOIN groups ON users.group_id = groups.group_id WHERE users.tg_user_id = (?)",
                                  (tg_user_id, )).fetchone()
     conn.close()
     return user
@@ -103,7 +103,7 @@ def get_academy_plan():
 
 def get_subscribers():
     conn = connect()
-    subs = conn.cursor().execute("SELECT chat_id FROM subscribers").fetchall()
+    subs = conn.cursor().execute("SELECT chat_id, tg_user_id FROM subscribers").fetchall()
     conn.close()
     return subs
 

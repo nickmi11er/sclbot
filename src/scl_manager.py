@@ -7,12 +7,9 @@ import re
 import subprocess
 
 pt = re.compile(r'(?:\s*([0-9]+(?:,[0-9]+)*)+\s*(н|ч)+\s*)?\s*(.+)', re.UNICODE)
-#wb = load_workbook(filename=const.assets_dir + '/schedule.xlsx')
 wb2 = load_workbook(filename=const.assets_dir + '/scl.xlsx')
-#ws = wb.worksheets[0]
 ws2 = wb2.worksheets[0]
 
-gp_name = u'БББО-02-15'
 start_dt = datetime.strptime('05.02.2018', '%d.%m.%Y')
 
 scl_time = {
@@ -58,10 +55,7 @@ def choose_task(entity, wleft):
             
 
 
-
-
-
-def get_scl(date):
+def _get_scl(gp_nm, date):
     date = date.replace(hour=0, minute=0, second=0, microsecond=0)
     result = []
     loaded_tasks = 0
@@ -78,8 +72,12 @@ def get_scl(date):
         if findall:
             break
         for cell in col:
+            cv = cell.value
+            if cv and int(cell.row) == 2:
+                if not isinstance(cv, long):
+                    cv = cv.replace(' ', '')
             # нашли нужную группу
-            if cell.value == gp_name:
+            if cv == gp_nm:
                 cc = cell.column
                 # парсим расписание на запрошенный день
                 # перебираем следующие 12 ячеек с шагом 2 с учетом четности недели

@@ -65,8 +65,10 @@ def my_id(bot, update):
 
 
 # Получение списка пар из exel
-def get_scl_with(dt):
+def get_scl_with(dt, id):
     date = dm.now()
+    user = data_manager.get_user(id)
+    gp_name = user[3]
     if dt is not None:
         date = dt
 
@@ -74,8 +76,8 @@ def get_scl_with(dt):
         return u'Учеба еще на началась'
 
     out = "Расписание пар на " + date_manager.rus_week_day[date.weekday()] + ": \n\n"
-    res = scl_manager.get_scl(date)
-    #res = scl_manager.get_with(date)
+    res = scl_manager._get_scl(gp_name, date)
+
     if res:
         for r in res:
             out = out + r + "\n"
@@ -93,11 +95,12 @@ def updscl(bot, update):
 # CommandHandler: Расписание пар на текущий день
 def schedule(bot, update, args):
     res = u''
+    user = update.message.from_user
 
     if len(args) > 0:
-        res = get_scl_with(date_manager.get_day_over(int(args[0])))   
+        res = get_scl_with(date_manager.get_day_over(int(args[0])), user.id)   
     else:
-        res = get_scl_with(None) 
+        res = get_scl_with(None, user.id) 
 
     log_bot_request(update.message, 'Schedule')
     update.message.reply_text(res)
@@ -121,7 +124,7 @@ def button(bot, update):
             username = user.first_name.encode('utf-8')
         data_manager.add_or_update_user(username, user.id, 2, gp_id)
         keyboard = kb.menu_kb()
-        bot.edit_message_text(text='Данные обновлены',
+        bot.edit_message_text(text='Группа успешно обновлена',
                             chat_id=query.message.chat_id,
                             message_id=query.message.message_id,
                             reply_markup=None)
@@ -130,11 +133,12 @@ def button(bot, update):
         return
     if query.data[0:13] == 'calendar-day-':
         chat_id = query.message.chat_id
+        user = query.from_user
         saved_date = current_shown_dates.get(chat_id)
         if(saved_date is not None):
             day=query.data[13:]
             date = dm.strptime('{}{}{}'.format(saved_date[0],int(saved_date[1]), int(day)), '%Y%m%d')
-            res = get_scl_with(date)
+            res = get_scl_with(date, user.id)
             bot.edit_message_text(text=res,
                             chat_id=query.message.chat_id,
                             message_id=query.message.message_id,
@@ -153,7 +157,7 @@ def button(bot, update):
                 year+=1
             date = (year,month)
             current_shown_dates[chat_id] = date
-            markup= telecal.create_calendar(year,month)
+            markup= kb.create_calendar(year,month)
             bot.edit_message_text(text="Выберите дату.", 
                         chat_id=query.message.chat_id,
                         message_id=query.message.message_id,
@@ -172,7 +176,7 @@ def button(bot, update):
                 year-=1
             date = (year,month)
             current_shown_dates[chat_id] = date
-            markup= telecal.create_calendar(year,month)
+            markup= kb.create_calendar(year,month)
             bot.edit_message_text("Выберите дату.", 
                         chat_id=query.message.chat_id,
                         message_id=query.message.message_id,
@@ -216,7 +220,8 @@ def button(bot, update):
                         message_id=query.message.message_id,
                         reply_markup=reply_markup)
     else:
-        res = get_scl_with(date_manager.get_day_over(_type - dm.now().weekday()))
+        user = query.from_user
+        res = get_scl_with(date_manager.get_day_over(_type - dm.now().weekday()), user.id)
         bot.edit_message_text(text=res,
                             chat_id=query.message.chat_id,
                             message_id=query.message.message_id)
@@ -246,25 +251,25 @@ def users_list(bot, update):
 
 
 # CommandHandler(Admin request): Добавить нового пользователя
-def add_user(update, args):
-    log_bot_request(update.message, 'Add User')
+# def add_user(update, args):
+#     log_bot_request(update.message, 'Add User')
 
-    res = ""
-    if len(args) < 3:
-        res += u"Для добавления пользователя необходимо передать параметры в виде: /add_user id_пользователя роль(1 - " \
-               u"админ) имя "
-    else:
-        if check_permission(update.message.from_user.id):
-            username = u''
-            if len(args) == 3:
-                username += args[2]
-            elif len(args) == 4:
-                username + u'{} {}'.format(args[2], args[3])
+#     res = ""
+#     if len(args) < 3:
+#         res += u"Для добавления пользователя необходимо передать параметры в виде: /add_user id_пользователя роль(1 - " \
+#                u"админ) имя "
+#     else:
+#         if check_permission(update.message.from_user.id):
+#             username = u''
+#             if len(args) == 3:
+#                 username += args[2]
+#             elif len(args) == 4:
+#                 username + u'{} {}'.format(args[2], args[3])
 
-            res = data_manager.add_or_update_user(username, args[0], args[1], 0)
-        else:
-            res = const.permission_error
-    update.message.reply_text(res)
+#             res = data_manager.add_or_update_user(username, args[0], args[1], 0)
+#         else:
+#             res = const.permission_error
+#     update.message.reply_text(res)
 
 
 def error(bot, update, _error):
@@ -325,7 +330,7 @@ def start(bot, update):
     else:
         groups = data_manager.get_groups()
         keyboard = kb.groups_kb(groups)
-        bot.send_message(chat_id = update.message.chat_id, text = 'Выберите группу в которой обучаетесь', reply_markup=keyboard)
+        bot.send_message(chat_id = update.message.chat_id, text = 'Выберите учебную группу', reply_markup=keyboard)
         
 
 
@@ -341,7 +346,10 @@ def filter(bot, update):
     elif update.message.text == u'Отписаться от уведомлений':
         unsubscribe(bot, update)
     elif update.message.text == u'Выбрать группу':
-        update.message.reply_text('Данная функция временно недоступна')
+        groups = data_manager.get_groups()
+        keyboard = kb.groups_kb(groups)
+        user = data_manager.get_user(update.message.from_user.id)
+        update.message.reply_text(text = u'Ваша текущая группа: {}\nВыберите учебную группу'.format(user[3]), reply_markup=keyboard)
         
 
 
@@ -363,8 +371,8 @@ dispatcher.add_error_handler(error)
 dispatcher.add_handler(CommandHandler("ll", lecturers_list))
 
 # Админский блок
-dispatcher.add_handler(CommandHandler('users_list', users_list))
-dispatcher.add_handler(CommandHandler('add_user', add_user, pass_args=True))
+#dispatcher.add_handler(CommandHandler('users_list', users_list))
+#dispatcher.add_handler(CommandHandler('add_user', add_user, pass_args=True))
 dispatcher.add_handler(CommandHandler("updscl", updscl)) # add permission
 
 updater.start_polling()
@@ -386,7 +394,7 @@ def callback_scl_notifier(bot, job):
         notified = True
 
         for subscriber in data_manager.get_subscribers():
-            bot.send_message(chat_id=subscriber[0], text=get_scl_with(None))
+            bot.send_message(chat_id=subscriber[0], text=get_scl_with(None, subscriber[1]))
 
     elif current_hour >= 9:
         notified = False
