@@ -43,7 +43,7 @@ fi
 
 t_pid=$!
 
-printf "Alright!\nBot is started! (CLI PID = $t_pid)\n"
+printf "Alright!\nCLI is started! (PID = $t_pid)\n"
 
 #deactivate
 
