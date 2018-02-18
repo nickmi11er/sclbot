@@ -394,7 +394,7 @@ def callback_scl_notifier(bot, job):
         notified = True
 
         for subscriber in data_manager.get_subscribers():
-            bot.send_message(chat_id=subscriber[0], text=get_scl_with(None, subscriber[1]))
+            bot.send_message(chat_id=subscriber[0], text=get_scl_with(date_manager.get_day_over(1), subscriber[1]))
 
     elif current_hour >= 9:
         notified = False
