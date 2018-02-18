@@ -13,6 +13,8 @@ import subprocess, shlex
 bot_exec_p = ""
 running_pid = 0
 
+remove_empt_elems = lambda x: x != '' and x != ' ' 
+
 def bot_pid():
     p = "pgrep -f src/bot.py"
     r = subprocess.Popen(shlex.split(p), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -96,16 +98,26 @@ def server(proc):
     print "[CLI] Server runnning in {}:{}".format(ip, port)
     server.serve_forever()
 
+def append_path(left, right):
+    left_l = filter(remove_empt_elems, left.split('/'))
+    right_l = filter(remove_empt_elems, right.split('/'))
+    for p in right_l:
+        if p == '..' and len(left_l) > 1:
+            left_l.pop()
+        else:
+            left_l.append(p)
+    return ("/" if left[0] == "/" else "") +  "/".join(left_l)
+
 def start_bot():
     botenv = os.getenv('BOT_ENV', "!")
     if botenv == "!":
         print "[CLI] Sorry. Problem with python env"
         os._exit(1)
-    python_ex = os.path.join(botenv, "bin/python")
-    p = os.path.join(os.getcwd(), python_ex)
+    python_ex = append_path(botenv, "bin/python/ /")
+    p_exec_path = append_path(os.getcwd(), python_ex)
     prod = "" if (os.getenv('MODE', 'prod') == 'prod') else '-B'
-    p += " " + prod + " src/bot.py"
-    args = shlex.split(p)
+    p_exec_path += " " + prod + " src/bot.py"
+    args = shlex.split(p_exec_path)
     print "[CLI] Starting bot from cli...."
     #spawning
     proc = subprocess.Popen(args)
