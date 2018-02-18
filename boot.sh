@@ -17,7 +17,7 @@ printf "Trying to decrypt file $filename\n"
 if [ ! -d "assets" ]; then
   mkdir assets
 fi
-openssl enc -d -aes-256-cbc -in "$filename" -out assets/settings.dat > /dev/null 2>&1
+./crypt.py dec "$filename" "assets/settings.dat"
 if [ $? -eq 0 ]; then
   echo 'Successfully encrypted settings file. Moving on'
 else
