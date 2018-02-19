@@ -361,10 +361,7 @@ def start(bot, update):
 
 
 def private_chat(chat):
-    if chat.type == 'private':
-        return True
-    else:
-        return False     
+    return chat.type == 'private'   
 
 
 def filter(bot, update):
