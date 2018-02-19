@@ -28,13 +28,14 @@ def create_calendar(year,month):
     #Last row - Buttons
     row=[]
     row.append(InlineKeyboardButton("<",callback_data="previous-month"))
-    row.append(InlineKeyboardButton("Назад",callback_data="back"))
+    row.append(InlineKeyboardButton("Назад",callback_data="wd--1"))
     row.append(InlineKeyboardButton(">",callback_data="next-month"))
     markup.append(row)
     return InlineKeyboardMarkup(markup)
 
 
 def weekday_kb(current_day, is_nex_week):
+    pref = 'wd-'
     future_days = 7 - current_day # оставшееся количество дней в неделе
     exist_days = future_days
 
@@ -57,7 +58,7 @@ def weekday_kb(current_day, is_nex_week):
                     start_day = current_day + 7
                     day_name = dm.rus_week_day[current_day]
 
-                row.append(InlineKeyboardButton(day_name, callback_data=str(start_day)))
+                row.append(InlineKeyboardButton(day_name, callback_data=pref + str(start_day)))
                 exist_days -= 1
                 current_day += 1
                 continue
@@ -70,7 +71,7 @@ def weekday_kb(current_day, is_nex_week):
                     start_day = current_day + 7
                     day_name = dm.rus_week_day[current_day]
 
-                row.append(InlineKeyboardButton(day_name, callback_data=str(start_day)))
+                row.append(InlineKeyboardButton(day_name, callback_data=pref + str(start_day)))
                 exist_days -= 1
                 current_day += 1
                 continue
@@ -78,7 +79,7 @@ def weekday_kb(current_day, is_nex_week):
                 start_day = current_day
                 if is_nex_week:
                     start_day = current_day + 7
-                row.append(InlineKeyboardButton(dm.rus_week_day[current_day], callback_data=str(start_day)))
+                row.append(InlineKeyboardButton(dm.rus_week_day[current_day], callback_data=pref + str(start_day)))
                 exist_days -= 1
                 current_day += 1
 
@@ -86,11 +87,11 @@ def weekday_kb(current_day, is_nex_week):
 
     row = []
     if not is_nex_week:
-        row.append(InlineKeyboardButton("След. неделя", callback_data='-1'))
+        row.append(InlineKeyboardButton("След. неделя", callback_data=pref + '-1'))
     else:
-        row.append(InlineKeyboardButton("Пред. неделя", callback_data='-2'))
+        row.append(InlineKeyboardButton("Пред. неделя", callback_data=pref + '-2'))
 
-    row.append(InlineKeyboardButton("Календарь", callback_data='-3'))
+    row.append(InlineKeyboardButton("Календарь", callback_data='calendar-day--3'))
     keyboard.append(row)
     return InlineKeyboardMarkup(keyboard)
 

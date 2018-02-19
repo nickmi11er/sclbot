@@ -3,6 +3,7 @@ from openpyxl import load_workbook
 from datetime import datetime
 import const
 import data_manager as dm
+import date_manager
 import re
 import subprocess
 
@@ -53,7 +54,6 @@ def choose_task(entity, wleft):
     else:
         return 'kostil'
             
-
 
 def _get_scl(gp_nm, date):
     date = date.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -139,44 +139,23 @@ def _get_scl(gp_nm, date):
     return result                   
 
 
-## DEPRECATED
-# Получение списка предметов из exel на указанный день
-def get_with(time):
-    time = time.replace(hour=0, minute=0, second=0, microsecond=0)
-    result = []
-    loaded_cells = 0
-    date_is_find = False
+def get_scl_with(dt, id):
+    date = datetime.now()
+    user = dm.get_user(id)
+    gp_name = user[3]
+    if dt is not None:
+        date = dt
 
-    for column in ws.iter_cols(min_col=1):
+    if date < start_dt:
+        return u'Учеба еще на началась'
 
-        for cell in column:
-            # если ячейка не пустая
-            if cell.value:
-                # если нужная дата еще не найдена, проверяем дальше
-                if not date_is_find:
-                    if isinstance(cell.value, datetime):
-                        if time == cell.value:
-                            date_is_find = True
-                            continue
+    out = "Расписание пар на " + date_manager.rus_week_day[date.weekday()] + ": \n\n"
+    res = _get_scl(gp_name, date)
 
-                if date_is_find and loaded_cells < 6:
-                    loaded_cells += 1
+    if res:
+        for r in res:
+            out = out + r + "\n"
+    else:
+        out = u"Пар нет. Отдыхай!"
 
-                    if cell.value == "-":
-                        continue
-
-                    task_name = schedule_time(loaded_cells) + "     " + cell.value
-
-                    # Если есть номер аудитории, добавляем в строку
-                    cell_name = inc_col_name(cell.column) + str(cell.row)
-
-                    if ws[cell_name].value:
-                        val = ws[cell_name].value
-                        if isinstance(val, float) or isinstance(val, long):
-                            val = str(val)
-
-                        task_name += "  " + val
-
-                    result.append(task_name)
-
-    return result
+    return out
