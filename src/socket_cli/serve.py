@@ -83,6 +83,10 @@ def do(cmd):
                 h+=line.strip()
         if h != '':
             ans+='\n' + 'Running version = ' + h
+    elif cmd == "suicide":
+        print "[CLI] AMA killing myself"
+        stop_bot()
+        return "SUI"
     return ans
 
 class MySocketHandler(SocketServer.BaseRequestHandler):
@@ -90,7 +94,10 @@ class MySocketHandler(SocketServer.BaseRequestHandler):
     def handle(self):
         self.data = self.request.recv(1024).strip()
         print "[CLI] Connect from {}. Command = {}".format(self.client_address[0], self.data)
-        self.request.sendall(do(self.data))
+        ans = do(self.data)
+        if ans == "SUI":
+            os._exit(0)
+        self.request.sendall(ans)
 
 
 def server(proc):
