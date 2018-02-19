@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime as dm
 import logging
-import sqlite3
+from enum import Enum
+
 
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters
 
@@ -23,9 +24,18 @@ BOT_TOKEN = s_store.get(const._bot_token_name)
 
 
 updater = Updater(BOT_TOKEN)
-dispatcher = updater.dispatcher
+dsp = updater.dispatcher
+
+def dispatch(name=None, p_args=False):
+    def decorator(func):
+        dsp.add_handler(CommandHandler(name, func, pass_args=p_args))
+        def _decorator(*args, **kwargs):
+            func(*args, **kwargs)
+        return _decorator
+    return decorator
 
 current_shown_dates={}
+        
 
 def sig_handler(signum, frame):
     print "Recieve signal to suicide... PID = {}".format(os.getpid())
@@ -60,6 +70,7 @@ def check_permission(user_id):
 
 
 # Возвращает id пользователя, сделавшего запрос
+@dispatch(name='my_id')
 def my_id(bot, update):
     update.message.reply_text("Ваш ID: {}".format(update.message.from_user.id))
 
@@ -87,13 +98,15 @@ def get_scl_with(dt, id):
     return out
 
 
+@dispatch(name='updscl')
 def updscl(bot, update):
     scl_manager.updscl()
     update.message.reply_text('Расписание успешно обновлено!')
 
 
 # CommandHandler: Расписание пар на текущий день
-def schedule(bot, update, args):
+@dispatch(name='s', p_args=True)
+def schedule(bot, update, args=None):
     res = u''
 
     if private_chat(update.message.chat):
@@ -101,7 +114,7 @@ def schedule(bot, update, args):
     else:
         id = update.message.chat.id
 
-    if len(args) > 0:
+    if args and len(args) > 0:
         res = get_scl_with(date_manager.get_day_over(int(args[0])), id)   
     else:
         res = get_scl_with(None, id) 
@@ -112,10 +125,28 @@ def schedule(bot, update, args):
 
 
 # CommandHandler: Расписание пар на заданный день недели
+@dispatch(name='sb')
 def schedule_with(bot, update):
     log_bot_request(update.message, 'Schedule With')
     keyboard = kb.weekday_kb(dm.now().weekday(), False)
     update.message.reply_text('На какой день недели?', reply_markup=keyboard)
+
+
+class AnsType(Enum):
+    SEND = 1,
+    EDIT = 2
+        
+
+def send_answer(bot, args, type, kb):
+    qy = args['query']
+    if type == AnsType.EDIT:
+        bot.edit_message_text(text=args['text'],
+                            chat_id=qy.message.chat_id,
+                            message_id=qy.message.message_id,
+                            reply_markup=kb)
+
+    bot.answer_callback_query(qy.id, text="")
+        
 
 
 def button(bot, update):
@@ -156,11 +187,7 @@ def button(bot, update):
             day=query.data[13:]
             date = dm.strptime('{}{}{}'.format(saved_date[0],int(saved_date[1]), int(day)), '%Y%m%d')
             res = get_scl_with(date, id)
-            bot.edit_message_text(text=res,
-                            chat_id=query.message.chat_id,
-                            message_id=query.message.message_id,
-                            reply_markup=None)
-            bot.answer_callback_query(query.id, text="")
+            send_answer(bot, {'text':res, 'query':query}, AnsType.EDIT, None)
         return
 
     if query.data == 'next-month':
@@ -175,11 +202,7 @@ def button(bot, update):
             date = (year,month)
             current_shown_dates[chat_id] = date
             markup= kb.create_calendar(year,month)
-            bot.edit_message_text(text="Выберите дату.", 
-                        chat_id=query.message.chat_id,
-                        message_id=query.message.message_id,
-                        reply_markup=markup)
-            bot.answer_callback_query(query.id, text="")
+            send_answer(bot, {'text':'Выберите дату.', 'query':query}, AnsType.EDIT, markup)
         return
 
     if query.data == 'previous-month':
@@ -194,20 +217,12 @@ def button(bot, update):
             date = (year,month)
             current_shown_dates[chat_id] = date
             markup= kb.create_calendar(year,month)
-            bot.edit_message_text("Выберите дату.", 
-                        chat_id=query.message.chat_id,
-                        message_id=query.message.message_id,
-                        reply_markup=markup)
-            bot.answer_callback_query(query.id, text="")
+            send_answer(bot, {'text':'Выберите дату.', 'query':query}, AnsType.EDIT, markup)
         return
 
     if query.data == 'back':
-        reply_markup = kb.weekday_kb(dm.now().weekday(), False)
-        bot.edit_message_text(text='На какой день недели?',
-                        chat_id=query.message.chat_id,
-                        message_id=query.message.message_id,
-                        reply_markup=reply_markup)
-        bot.answer_callback_query(query.id, text="")
+        markup = kb.weekday_kb(dm.now().weekday(), False)
+        send_answer(bot, {'text':'На какой день недели?', 'query':query}, AnsType.EDIT, markup)
         return
     if query.data == 'ignore':
         bot.answer_callback_query(query.id, text="")
@@ -215,92 +230,41 @@ def button(bot, update):
     
     _type = int(query.data)
     if _type == -1:
-        reply_markup = kb.weekday_kb(0, True)
-        bot.edit_message_text(text='На какой день недели?',
-                        chat_id=query.message.chat_id,
-                        message_id=query.message.message_id,
-                        reply_markup=reply_markup)
+        markup = kb.weekday_kb(0, True)
+        send_answer(bot, {'text':'На какой день недели?', 'query':query}, AnsType.EDIT, markup)
     elif _type == -2:
-        reply_markup = kb.weekday_kb(dm.now().weekday(), False)
-        bot.edit_message_text(text='На какой день недели?',
-                        chat_id=query.message.chat_id,
-                        message_id=query.message.message_id,
-                        reply_markup=reply_markup)
+        markup = kb.weekday_kb(dm.now().weekday(), False)
+        send_answer(bot, {'text':'На какой день недели?', 'query':query}, AnsType.EDIT, markup)
     elif _type == -3:
         now = dm.now() 
         chat_id = query.message.chat_id
         date = (now.year,now.month)
         current_shown_dates[chat_id] = date
-        reply_markup = kb.create_calendar(now.year, now.month)
-        bot.edit_message_text(text='Выберите дату.',
-                        chat_id=query.message.chat_id,
-                        message_id=query.message.message_id,
-                        reply_markup=reply_markup)
+        markup = kb.create_calendar(now.year, now.month)
+        send_answer(bot, {'text':'Выберите дату.', 'query':query}, AnsType.EDIT, markup)
     else:
         if private_chat(query.message.chat):
             id = query.from_user.id
         else:
             id = query.message.chat.id
         res = get_scl_with(date_manager.get_day_over(_type - dm.now().weekday()), id)
-        bot.edit_message_text(text=res,
-                            chat_id=query.message.chat_id,
-                            message_id=query.message.message_id)
-
-    bot.answer_callback_query(query.id, text="")
+        send_answer(bot, {'text':res, 'query':query}, AnsType.EDIT, None)
             
 
 # CommandHandler: Акакдемический план
+@dispatch(name='ap')
 def academy_plan(bot, update):
     log_bot_request(update.message, 'Academy Plan')
     update.message.reply_text(data_manager.get_academy_plan())
 
 
-# CommandHandler(Admin request): Список пользователей
-def users_list(bot, update):
-    log_bot_request(update.message, 'Users List')
-
-    if check_permission(update.message.from_user.id):
-        res = u"Список пользователей: \n"
-
-        for row in data_manager.users_list():
-            res += '{}: {} (role: {})\n'.format(row[0], row[1], row[2])
-    else:
-        res = const.permission_error
-
-    update.message.reply_text(res)
-
-
-# CommandHandler(Admin request): Добавить нового пользователя
-# def add_user(update, args):
-#     log_bot_request(update.message, 'Add User')
-
-#     res = ""
-#     if len(args) < 3:
-#         res += u"Для добавления пользователя необходимо передать параметры в виде: /add_user id_пользователя роль(1 - " \
-#                u"админ) имя "
-#     else:
-#         if check_permission(update.message.from_user.id):
-#             username = u''
-#             if len(args) == 3:
-#                 username += args[2]
-#             elif len(args) == 4:
-#                 username + u'{} {}'.format(args[2], args[3])
-
-#             res = data_manager.add_or_update_user(username, args[0], args[1], 0)
-#         else:
-#             res = const.permission_error
-#     update.message.reply_text(res)
-
-
-def error(bot, update, _error):
-    logging.warning('Update "%s" caused error "%s"' % (update, _error))
-
-
+@dispatch(name='ll')
 def lecturers_list(bot, update):
     log_bot_request(update.message, 'get lecturers list')
     update.message.reply_text(data_manager.get_lecturers())
 
 
+@dispatch(name='notime')
 def notify_me(bot, update):
     log_bot_request(update.message, 'Notify Me')
     msg = ''
@@ -314,6 +278,7 @@ def notify_me(bot, update):
     update.message.reply_text(msg)
 
 
+@dispatch(name='unsub')
 def unsubscribe(bot, update):
     log_bot_request(update.message, 'Unsubscribe')
     msg = ''
@@ -327,20 +292,7 @@ def unsubscribe(bot, update):
     update.message.reply_text(msg)
 
 
-def day_x(bot, update):
-    log_bot_request(update.message, 'Day X')
-    conn = sqlite3.connect(DB_NAME)
-
-    output = ''
-    res = scl_manager.scl_info(conn)
-    output += u"Сейчас идет " + str(res['weeknum']) + u" неделя\n"
-    output += u"Осталось до сессии недель: " + str(res['days'] / 7) + u", дней: " + str(res['days'] % 7) + "\n"
-    output += u"Пройдено: " + str(res['percentage']) + "%"
-
-    update.message.reply_text(output)
-    conn.close()
-
-
+@dispatch(name='start')
 def start(bot, update):
     log_bot_request(update.message, 'Start')
     if private_chat(update.message.chat):
@@ -367,62 +319,32 @@ def private_chat(chat):
         return False     
 
 
-def filter(bot, update):
-    if update.message.text == u'Расписание на сегодня':
-        schedule(bot, update, [])
-    elif update.message.text == u'Расписание на указанный день':
-        schedule_with(bot, update)
-    elif update.message.text == u'Академический план':
-        academy_plan(bot, update)
-    elif update.message.text == u'Уведомлять о событиях':
-        notify_me(bot, update)
-    elif update.message.text == u'Отписаться от уведомлений':
-        unsubscribe(bot, update)
-    elif update.message.text == u'Выбрать группу':
-        groups = data_manager.get_groups()
-        private = private_chat(update.message.chat)
-        keyboard = kb.groups_kb(groups, private)
-        if private:
-            user = data_manager.get_user(update.message.from_user.id)
-        else:
-            user = data_manager.get_user(update.message.chat.id)
-        update.message.reply_text(text = u'Ваша текущая группа: {}\nВыберите учебную группу'.format(user[3]), reply_markup=keyboard)
-        
+def choose_gp(bot, update):
+    groups = data_manager.get_groups()
+    private = private_chat(update.message.chat)
+    keyboard = kb.groups_kb(groups, private)
+    if private:
+        user = data_manager.get_user(update.message.from_user.id)
+    else:
+        user = data_manager.get_user(update.message.chat.id)
+    update.message.reply_text(text = u'Ваша текущая группа: {}\nВыберите учебную группу'.format(user[3]), reply_markup=keyboard)
 
 
-dispatcher.add_handler(CommandHandler('s', schedule, pass_args=True))
-dispatcher.add_handler(CommandHandler('sb', schedule_with))
-dispatcher.add_handler(CommandHandler('ap', academy_plan))
-dispatcher.add_handler(CommandHandler('my_id', my_id))
-dispatcher.add_handler(CommandHandler('notime', notify_me))
-dispatcher.add_handler(CommandHandler('unsub', unsubscribe))
-dispatcher.add_handler(CommandHandler('day_x', day_x))
-dispatcher.add_handler(CommandHandler('start', start))
+commands = {
+    u'Расписание на сегодня': schedule,
+    u'Расписание на указанный день': schedule_with,
+    u'Академический план': academy_plan,
+    u'Уведомлять о событиях': notify_me,
+    u'Выбрать группу': choose_gp
+}
 
-echo_handler = MessageHandler(Filters.text, filter)
-dispatcher.add_handler(echo_handler)
-
-
-dispatcher.add_handler(CallbackQueryHandler(button))
-dispatcher.add_error_handler(error)
-dispatcher.add_handler(CommandHandler("ll", lecturers_list))
-
-# Админский блок
-#dispatcher.add_handler(CommandHandler('users_list', users_list))
-#dispatcher.add_handler(CommandHandler('add_user', add_user, pass_args=True))
-dispatcher.add_handler(CommandHandler("updscl", updscl)) # add permission
-
-updater.start_polling()
-print('Bot is started...')
-
-# =================================================================
+filter_cmd = lambda bot, upd: upd.message.text in commands and commands[upd.message.text](bot, upd)
 
 
 notified = False
 
-
 def callback_scl_notifier(bot, job):
-    if dm.now().weekday() == 6:
+    if dm.now().weekday() == 5:
         return
 
     global notified
@@ -433,13 +355,29 @@ def callback_scl_notifier(bot, job):
         for subscriber in data_manager.get_subscribers():
             bot.send_message(chat_id=subscriber[0], text=get_scl_with(date_manager.get_day_over(1), subscriber[1]))
 
-    elif current_hour >= 9:
+    elif current_hour >= 21:
         notified = False
 
 
-schedule_notifier = updater.job_queue.run_repeating(callback_scl_notifier, interval=60*15, first=0)
-print('Schedule notifier started...')
+def main():
+    dsp.add_handler(MessageHandler(Filters.text, filter_cmd))
+    dsp.add_handler(CallbackQueryHandler(button))
 
-# =================================================================
+    dsp.add_error_handler(lambda bot, update, _error : logging.warning('Update "%s" caused error "%s"' % (update, _error)))
 
-updater.idle()
+    updater.start_polling()
+    print('Bot is started...')
+
+    # =================================================================
+
+    schedule_notifier = updater.job_queue.run_repeating(callback_scl_notifier, interval=60*15, first=0)
+    print('Schedule notifier started...')
+
+    # =================================================================
+
+    updater.idle()
+
+
+
+if __name__ == '__main__':
+    main()
