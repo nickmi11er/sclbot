@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-from telegram.ext import CallbackQueryHandler, MessageHandler, Filters
 import data_manager, date_manager, scl_manager
 from handler import ButtonHandlerFactory
 from store_manager import SettingStore
 from datetime import datetime as dm
-import handler as hand
 import keyboard as kb
-from tbot import Bot
+from tbot import Bot, HandlerType
 import logging
 import const
 import signal
@@ -17,9 +15,7 @@ s_store = SettingStore()
 logging.basicConfig(filename=const.root_path + '/log.txt', level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-DB_NAME = const._db_name
 BOT_TOKEN = s_store.get(const._bot_token_name)
-
 bot = Bot(BOT_TOKEN)
         
 
@@ -49,20 +45,20 @@ def check_permission(user_id):
 
 
 # Возвращает id пользователя, сделавшего запрос
-@bot.dispatch(name='my_id')
+@bot.handle(name='my_id')
 def my_id(bt, update):
     update.message.reply_text("Ваш ID: {}".format(update.message.from_user.id))
 
 
-@bot.dispatch(name='updscl')
+@bot.handle(name='updscl')
 def updscl(bt, update):
     scl_manager.updscl()
     update.message.reply_text('Расписание успешно обновлено!')
 
 
 # CommandHandler: Расписание пар на текущий день
-@bot.dispatch(name='s', p_args=True)
-def schedule(bt, update, args=None):
+@bot.handle(name='s', p_args=True)
+def schedule(bt, update):
     res = u''
 
     if private_chat(update.message.chat):
@@ -70,50 +66,45 @@ def schedule(bt, update, args=None):
     else:
         id = update.message.chat.id
 
-    if args and len(args) > 0:
-        res = scl_manager.get_scl_with(date_manager.get_day_over(int(args[0])), id)   
-    else:
-        res = scl_manager.get_scl_with(None, id) 
-
+    res = scl_manager.get_scl_with(None, id) 
     log_bot_request(update.message, 'Schedule')
     update.message.reply_text(res)
 
 
 
 # CommandHandler: Расписание пар на заданный день недели
-@bot.dispatch(name='sb')
+@bot.handle(name='sb')
 def schedule_with(bt, update):
     log_bot_request(update.message, 'Schedule With')
     keyboard = kb.weekday_kb(dm.now().weekday(), False)
     update.message.reply_text('На какой день недели?', reply_markup=keyboard)
 
 
+@bot.handle(type=HandlerType.BUTTON)
 def button(bt, update):
     query = update.callback_query
     handler = ButtonHandlerFactory().get_handler(query)
     if handler and handler.ready:
         params = handler.gen_params()
         bot.send_answer(bt, params)
-        return
     elif query.data == 'ignore':
         bt.answer_callback_query(query.id, text="")
-        return
             
 
 # CommandHandler: Акакдемический план
-@bot.dispatch(name='ap')
+@bot.handle(name='ap')
 def academy_plan(bt, update):
     log_bot_request(update.message, 'Academy Plan')
     update.message.reply_text(data_manager.get_academy_plan())
 
 
-@bot.dispatch(name='ll')
+@bot.handle(name='ll')
 def lecturers_list(bt, update):
     log_bot_request(update.message, 'get lecturers list')
     update.message.reply_text(data_manager.get_lecturers())
 
 
-@bot.dispatch(name='notime')
+@bot.handle(name='notime')
 def notify_me(bt, update):
     log_bot_request(update.message, 'Notify Me')
     msg = ''
@@ -127,7 +118,7 @@ def notify_me(bt, update):
     update.message.reply_text(msg)
 
 
-@bot.dispatch(name='unsub')
+@bot.handle(name='unsub')
 def unsubscribe(bt, update):
     log_bot_request(update.message, 'Unsubscribe')
     msg = ''
@@ -141,7 +132,7 @@ def unsubscribe(bt, update):
     update.message.reply_text(msg)
 
 
-@bot.dispatch(name='start')
+@bot.handle(name='start')
 def start(bt, update):
     log_bot_request(update.message, 'Start')
     if private_chat(update.message.chat):
@@ -184,12 +175,13 @@ commands = {
     u'Выбрать группу': choose_gp
 }
 
-filter_cmd = lambda bot, upd: upd.message.text in commands and commands[upd.message.text](bot, upd)
+@bot.handle(type=HandlerType.MESSAGE)
+def filter (bt, upd): 
+    return upd.message.text in commands and commands[upd.message.text](bt, upd)
 
 
 notified = False
-
-def callback_scl_notifier(bot, job):
+def scl_notifier(bt, job):
     if dm.now().weekday() == 5:
         return
 
@@ -197,31 +189,18 @@ def callback_scl_notifier(bot, job):
     current_hour = dm.now().hour
     if 20 <= current_hour < 21 and not notified:
         notified = True
-
         for subscriber in data_manager.get_subscribers():
-            bot.send_message(chat_id=subscriber[0], text=scl_manager.get_scl_with(date_manager.get_day_over(1), subscriber[1]))
-
+            bt.send_message(chat_id=subscriber[0], text=scl_manager.get_scl_with(date_manager.get_day_over(1), subscriber[1]))
     elif current_hour >= 21:
         notified = False
 
 
 def main():
-    bot.dsp.add_handler(MessageHandler(Filters.text, filter_cmd))
-    bot.dsp.add_handler(CallbackQueryHandler(button))
-
-    bot.dsp.add_error_handler(lambda bot, update, _error : logging.warning('Update "%s" caused error "%s"' % (update, _error)))
-
-    bot.updater.start_polling()
+    bot.polling()
     print('Bot is started...')
-
-    # =================================================================
-
-    schedule_notifier = bot.updater.job_queue.run_repeating(callback_scl_notifier, interval=60*15, first=0)
+    scl_notifier_job = bot.add_repeating_job(scl_notifier)
     print('Schedule notifier started...')
-
-    # =================================================================
-
-    bot.updater.idle()
+    bot.idle()
 
 
 

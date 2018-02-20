@@ -149,7 +149,7 @@ def get_scl_with(dt, id):
     if date < start_dt:
         return u'Учеба еще на началась'
 
-    out = "Расписание пар на " + date_manager.rus_week_day[date.weekday()] + ": \n\n"
+    out = 'Расписание пар на {} ({}): \n\n'.format(date.strftime('%d.%m.%Y'), date_manager.rus_week_day[date.weekday()])
     res = _get_scl(gp_name, date)
 
     if res:
