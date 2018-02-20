@@ -163,3 +163,22 @@ def set_group(gp_id, user_id):
     else:
         conn.commit()
     conn.close()
+
+
+# def scl_info(conn):
+#     meta = dm.get_meta(conn)
+
+#     time_start = datetime.strptime(meta[1], '%d.%m.%Y')
+#     time_now = datetime.today()
+#     time_end = datetime.strptime(meta[2], '%d.%m.%Y')
+
+#     weeknum = (time_now - time_start).days / 7 + 1
+#     percentage = str(int((float((time_now - time_start).days) / float((time_end - time_start).days)) * 100))
+
+#     res = {
+#         'weeknum': weeknum,
+#         'days': (time_end - time_now).days,
+#         'percentage': percentage
+#     }
+
+#     return res
