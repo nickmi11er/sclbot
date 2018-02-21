@@ -39,10 +39,9 @@ def get_pid_from_output(output):
 
 #Собственный сигнал и сигнальный обработчик в bot.py
 def kill_procs_by_pid(procs=[], exclude=0):
-    if exclude == 0:
-        for pid in procs:
-            if pid != exclude:
-                os.kill(pid, signal.SIGUSR1)
+    for pid in procs:
+        if pid != exclude:
+            os.kill(pid, signal.SIGUSR1)
     return exclude
 
 def get_bot_pid():
