@@ -74,15 +74,6 @@ def get_bot_pid():
     return max_pid
 
 
-def sig_handler(signum, frame):
-    print '[CLI] Sighandle. PID = {}'.format(os.getpid())
-
-def parse_dat():
-    _s = dict()
-    with open("run.dat", "r") as f:
-        for line in f:
-            l = line.strip().split('=')
-
 def start_bot_loc():
     global running_pid
     if running_pid == NO_PID or get_bot_pid() == NO_PID:
@@ -103,10 +94,11 @@ def stop_bot():
 
 def get_bot_hash():
     with open('assets/rev.hash') as f:
+        h = ''
         for line in f:
             h+=line.strip()
-    if h != '':
-        return '\nRunning version = ' + h
+        if h != '':
+            return '\nRunning version = ' + h
 
 def do(cmd):
     ans = ""
@@ -149,7 +141,6 @@ def server(proc):
     print "[CLI] Bot start with pid = {}".format(proc.pid)
     global running_pid
     running_pid = proc.pid
-    signal.signal(signal.SIGUSR1, sig_handler)
     HOST, PORT = '0.0.0.0', 1488
     server = SocketServer.TCPServer((HOST, PORT), MySocketHandler)
     ip, port = server.server_address
@@ -179,7 +170,6 @@ def start_bot():
     print "[CLI] Starting bot from cli...."
     #spawning
     proc = subprocess.Popen(args)
-    bot_exec_p = args
     return proc
 
 
