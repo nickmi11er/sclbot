@@ -24,6 +24,8 @@ scl_time = {
 
 def updscl():
     subprocess.call('sh ../assets/dlscl.sh', shell=True)
+    global wb2
+    global ws2
     wb2 = load_workbook(filename=const.assets_dir + '/scl.xlsx')
     ws2 = wb2.worksheets[0]
 
