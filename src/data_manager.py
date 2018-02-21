@@ -14,7 +14,7 @@ def connect():
 def users_list():
     conn = connect()
     users = conn.cursor().execute(
-        "SELECT u.user_id, u.username, r.role_name FROM users u JOIN roles r ON u.role = r.role_id ").fetchall()
+        "SELECT u.tg_user_id, u.username, r.role_name FROM users u JOIN roles r ON u.role = r.role_id ").fetchall()
     conn.close()
     return users
 
@@ -182,3 +182,29 @@ def set_group(gp_id, user_id):
 #     }
 
 #     return res
+
+q = """
+SELECT subjects.subj_name 
+FROM   (WITH recursive list( element, remainder ) AS 
+       ( 
+              SELECT NULL AS element, 
+                     ( 
+                            SELECT wt.subj_ids
+                            FROM   work_type AS wt 
+                            WHERE  w_type = 2 and group_id = 1) AS remainder 
+              UNION ALL 
+              SELECT 
+                     CASE 
+                            WHEN instr( remainder, ',' )>0 THEN substr( remainder, 0, instr( remainder, ',' ) )
+                            ELSE remainder 
+                     END AS element, 
+                     CASE 
+                            WHEN instr( remainder, ',' )>0 THEN substr( remainder, instr( remainder, ',' )+1 )
+                            ELSE NULL 
+                     END AS remainder 
+              FROM   list 
+              WHERE  remainder IS NOT NULL )SELECT element 
+FROM   list 
+WHERE  element IS NOT NULL) AS sjs 
+JOIN   subjects 
+ON     sjs.element = subjects.subject_id"""

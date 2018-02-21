@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from enum import Enum
 import logging
+from datetime import datetime as dm
+import data_manager
 from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters
 
 class AnsType(Enum):
@@ -12,8 +14,15 @@ class HandlerType(Enum):
     MESSAGE = 2,
     BUTTON = 3
 
+class Message():
+    def __init__(self, chat_id, msg_id):
+        self.init_time = dm.now()
+        self.chat_id = chat_id
+        self.msg_id = msg_id
+
 class Bot():
     def __init__(self, tk):
+        self.listened_msgs = []
         self.token = tk
         self.updater = Updater(self.token)
         self.dsp = self.updater.dispatcher
@@ -42,6 +51,23 @@ class Bot():
 
     def add_repeating_job(self, job, i=60*15, f=0):
         return self.updater.job_queue.run_repeating(job, interval=i, first=f)
+
+    def listen_for_message(self, chat_id, msg_id):
+        self.listened_msgs.append(Message(chat_id, msg_id))
+
+    def pop_listened_msg(self, msg):
+        for message in self.listened_msgs:
+            if msg.chat_id == message.chat_id and msg.message_id == message.msg_id:
+                self.listened_msgs.remove(message)
+                return msg
+        return None
+
+    def echo_for_all(self, message):
+        users = data_manager.users_list()
+        for u in users:
+            if int(u[0]) > 0: # skip negative numbers for groups 
+                logging.info(u'Send \'{}\' to {}'.format(message, u[0]))
+                self.updater.bot.send_message(chat_id=u[0], text=message)
 
     def send_answer(self, bt, args):
         qy = args['query']

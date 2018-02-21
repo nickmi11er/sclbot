@@ -177,7 +177,20 @@ commands = {
 
 @bot.handle(type=HandlerType.MESSAGE)
 def filter (bt, upd): 
-    return upd.message.text in commands and commands[upd.message.text](bt, upd)
+    msg = upd.message
+    if msg.reply_to_message and bot.pop_listened_msg(msg.reply_to_message) is not None:
+        bot.echo_for_all(msg.text)
+    else:
+        upd.message.text in commands and commands[msg.text](bt, upd)
+
+
+@bot.handle(name='echo')
+def echo(bt, upd):
+    log_bot_request(upd.message, 'Echo')
+    usr = data_manager.get_user(upd.message.from_user.id)
+    if usr and usr[2] == 1 or usr[2] == 3: # 1 - admin, 3 - group master
+        msg = bt.send_message(chat_id=upd.message.chat_id, text='Хорошо! Для того чтобы отправить сообщение моим пользователям, отправь его мне в ответном сообщении.')
+        bot.listen_for_message(upd.message.chat_id, msg.message_id)
 
 
 notified = False
