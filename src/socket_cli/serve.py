@@ -4,16 +4,38 @@ import threading
 import socket
 import signal, os, sys
 import subprocess, shlex
+from enum import Enum
 #===================================
 #   stop
 #   restart
 #   start
 #   status: RUNNING, STOPPED, STARTING
 #===================================
+NO_PID = 0
+
 bot_exec_p = ""
-running_pid = 0
+running_pid = NO_PID
 
 remove_empt_elems = lambda x: x != '' and x != ' ' 
+
+class COMMANDS(Enum):
+    START = 0,
+    STOP = 1,
+    RESTART = 2,
+    STATUS = 3,
+    KILL = 4
+
+def parse_cmd(cmd):
+    if cmd == "start":
+        return COMMANDS.START
+    elif cmd == "stop":
+        return COMMANDS.STOP
+    elif cmd == "restart":
+        return COMMANDS.RESTART
+    elif cmd == "status":
+        return COMMANDS.STATUS
+    elif cmd == "suicide":
+        return COMMANDS.KILL
 
 def get_pid_from_cmd():
     p = "pgrep -f src/bot.py"
@@ -63,7 +85,7 @@ def parse_dat():
 
 def start_bot_loc():
     global running_pid
-    if running_pid == -1 or get_bot_pid() == 0:
+    if running_pid == NO_PID or get_bot_pid() == NO_PID:
             running_pid = start_bot().pid
             return ("[CLI] Bot started with pid = {}".format(running_pid), True)
     else:
@@ -71,7 +93,7 @@ def start_bot_loc():
 
 def stop_bot():
     global running_pid
-    if running_pid in (-1, 0):
+    if running_pid == NO_PID:
             return ("[CLI] Bot is not running...", False)
     else:
         r = get_bot_pid()
@@ -79,33 +101,37 @@ def stop_bot():
         os.kill(running_pid, signal.SIGUSR1)
         return ("[CLI] OK", True)
 
+def get_bot_hash():
+    with open('assets/rev.hash') as f:
+        for line in f:
+            h+=line.strip()
+    if h != '':
+        return '\nRunning version = ' + h
+
 def do(cmd):
     ans = ""
     status = False
-    if cmd == "start":
+    command = parse_cmd(cmd)
+    if command == COMMANDS.START:
         ans, status = start_bot_loc()
-    elif cmd == "stop":
+    elif command == COMMANDS.STOP:
         ans, status = stop_bot()
-    elif cmd == "restart":
+    elif command == COMMANDS.RESTART:
         ans, status = stop_bot()
         if status:
             ans, status = start_bot_loc()
-    elif cmd == "status":
+        else:
+            return ans
+    elif command == COMMANDS.RESTART:
         global running_pid
-        if running_pid in (-1, 0) or get_bot_pid() == 0:
+        if running_pid == 0 or get_bot_pid() == 0:
             ans = "[CLI] Stopped."
         else:
             ans = "[CLI] Running. ID = {}.".format(running_pid)
-        h = ''
-        with open('assets/rev.hash') as f:
-            for line in f:
-                h+=line.strip()
-        if h != '':
-            ans+='\n' + 'Running version = ' + h
-    elif cmd == "suicide":
+            ans += get_bot_hash()
+    elif command == COMMANDS.KILL:
         print "[CLI] AMA killing myself"
         stop_bot()
-        return "SUI"
     return ans
 
 class MySocketHandler(SocketServer.BaseRequestHandler):
