@@ -15,22 +15,42 @@ running_pid = 0
 
 remove_empt_elems = lambda x: x != '' and x != ' ' 
 
-def bot_pid():
+def get_pid_from_cmd():
     p = "pgrep -f src/bot.py"
     r = subprocess.Popen(shlex.split(p), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    s = " ".join(line.strip() for line in r.stdout)
-    if s == '':
-        return 0
-    _t = s.split()
-    if len(_t) > 1:
-        _t = [int(x.strip()) for x in _t]
-        m_pid = max(_t)
-        for pid in _t:
-            if pid != m_pid:
-                os.kill(pid, signal.SIGUSR1)
-        return m_pid
+    return r.stdout
+
+def parse_pid_output(output):
+    return " ".join(line.strip() for line in output)
+
+def get_pid_from_output(output):
+    if output == '':
+        return 0, []
     else:
-        return int(s)
+        temp = output.split()
+        if len(temp) > 1:
+            #Несколько цифр (возможно старые процессы)
+            temp = [int(x.strip()) for x in temp]
+            max_pid = max(temp) # Максимальный PID - самый новый процесс
+            return max_pid, temp
+        else:
+            # Одна цифра
+            return int(output), [] 
+
+#Собственный сигнал и сигнальный обработчик в bot.py
+def kill_procs_by_pid(procs=[], exclude=0):
+    if exclude == 0:
+        for pid in procs:
+            if pid != exclude:
+                os.kill(pid, signal.SIGUSR1)
+    return exclude
+
+def get_bot_pid():
+    output = get_pid_from_cmd()
+    output = parse_pid_output(output)
+    max_pid, procs = get_pid_from_output(output)
+    max_pid = kill_procs_by_pid(procs=procs, exclude=max_pid)
+    return max_pid
 
 
 def sig_handler(signum, frame):
@@ -44,7 +64,7 @@ def parse_dat():
 
 def start_bot_loc():
     global running_pid
-    if running_pid == -1 or bot_pid() == 0:
+    if running_pid == -1 or get_bot_pid() == 0:
             running_pid = start_bot().pid
             return ("[CLI] Bot started with pid = {}".format(running_pid), True)
     else:
@@ -55,7 +75,7 @@ def stop_bot():
     if running_pid in (-1, 0):
             return ("[CLI] Bot is not running...", False)
     else:
-        r = bot_pid()
+        r = get_bot_pid()
         running_pid = max(r, running_pid)
         os.kill(running_pid, signal.SIGUSR1)
         return ("[CLI] OK", True)
@@ -73,7 +93,7 @@ def do(cmd):
             ans, status = start_bot_loc()
     elif cmd == "status":
         global running_pid
-        if running_pid in (-1, 0) or bot_pid() == 0:
+        if running_pid in (-1, 0) or get_bot_pid() == 0:
             ans = "[CLI] Stopped."
         else:
             ans = "[CLI] Running. ID = {}.".format(running_pid)
@@ -141,7 +161,7 @@ def start_bot():
 #   Предполагаем, что этот скрипт запустился от start.sh
 if __name__ == "__main__":
     bot_proc = start_bot()
-    bot_pid()
+    get_bot_pid()
     server(bot_proc)
 
 
