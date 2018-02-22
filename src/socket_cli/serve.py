@@ -93,12 +93,15 @@ def stop_bot():
         return ("[CLI] OK", True)
 
 def get_bot_hash():
-    with open('assets/rev.hash') as f:
-        h = ''
-        for line in f:
-            h+=line.strip()
-        if h != '':
-            return '\nRunning version = ' + h
+    try:
+        with open('assets/rev.hash') as f:
+            h = ''
+            for line in f:
+                h+=line.strip()
+            if h != '':
+                return h
+    except FileNotFoundError:
+        return 'None'
 
 def do(cmd):
     ans = ""
@@ -120,7 +123,7 @@ def do(cmd):
             ans = "[CLI] Stopped."
         else:
             ans = "[CLI] Running. ID = {}.".format(running_pid)
-            ans += get_bot_hash()
+            ans += '\nRunning version = ' + get_bot_hash()
     elif command == COMMANDS.KILL:
         print "[CLI] AMA killing myself"
         stop_bot()
