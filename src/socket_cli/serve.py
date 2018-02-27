@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import SocketServer
-import threading
-import socket
-import signal, os, sys
+import signal, sys, os
 import subprocess, shlex
 from enum import Enum
 #===================================
@@ -77,15 +75,15 @@ def get_bot_pid():
 def start_bot_loc():
     global running_pid
     if running_pid == NO_PID or get_bot_pid() == NO_PID:
-            running_pid = start_bot().pid
-            return ("[CLI] Bot started with pid = {}".format(running_pid), True)
+        running_pid = start_bot().pid
+        return ("[CLI] Bot started with pid = {}".format(running_pid), True)
     else:
         return ("[CLI] Bot already running", False)
 
 def stop_bot():
     global running_pid
     if running_pid == NO_PID:
-            return ("[CLI] Bot is not running...", False)
+        return ("[CLI] Bot is not running...", False)
     else:
         r = get_bot_pid()
         running_pid = max(r, running_pid)
@@ -130,13 +128,12 @@ def do(cmd):
     return ans
 
 class MySocketHandler(SocketServer.BaseRequestHandler):
-    
     def handle(self):
         self.data = self.request.recv(1024).strip()
         print "[CLI] Connect from {}. Command = {}".format(self.client_address[0], self.data)
         ans = do(self.data)
         if ans == "SUI":
-            os._exit(0)
+            sys.exit(0)
         self.request.sendall(ans)
 
 
@@ -144,10 +141,9 @@ def server(proc):
     print "[CLI] Bot start with pid = {}".format(proc.pid)
     global running_pid
     running_pid = proc.pid
-    HOST, PORT = '0.0.0.0', 1488
-    server = SocketServer.TCPServer((HOST, PORT), MySocketHandler)
-    ip, port = server.server_address
-    print "[CLI] Server runnning in {}:{}".format(ip, port)
+    host, port = '0.0.0.0', 1488
+    server = SocketServer.TCPServer((host, port), MySocketHandler)
+    print "[CLI] Server runnning in {}:{}".format(host, port)
     server.serve_forever()
 
 def append_path(left, right):
