@@ -161,7 +161,7 @@ def start_bot():
     if botenv == "!":
         print "[CLI] Sorry. Problem with python env"
         os._exit(1)
-    python_ex = append_path(botenv, "bin/python/ /")
+    python_ex = append_path(botenv, "bin/python/")
     p_exec_path = append_path(os.getcwd(), python_ex)
     prod = "" if (os.getenv('MODE', 'prod') == 'prod') else '-B'
     p_exec_path += " " + prod + " src/bot.py"
