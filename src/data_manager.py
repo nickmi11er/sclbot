@@ -2,11 +2,12 @@
 import logging
 import sqlite3
 import const
+from cache_manager import Cache
 
 logging.basicConfig(filename=const.root_path + '/log.txt', level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 DB_NAME = const._db_name
-
+cache = Cache()
 
 def connect():
     return sqlite3.connect(DB_NAME, check_same_thread = False)
@@ -20,10 +21,13 @@ def users_list():
 
 
 def get_user(tg_user_id):
-    conn = connect()
-    user = conn.cursor().execute("SELECT users.username, users.tg_user_id, users.role, groups.group_name FROM users INNER JOIN groups ON users.group_id = groups.group_id WHERE users.tg_user_id = (?)",
+    user = cache.get(tg_user_id)
+    if not user:
+        conn = connect()
+        user = conn.cursor().execute("SELECT users.username, users.tg_user_id, users.role, groups.group_name FROM users INNER JOIN groups ON users.group_id = groups.group_id WHERE users.tg_user_id = (?)",
                                  (tg_user_id, )).fetchone()
-    conn.close()
+        conn.close()
+        cache.set(tg_user_id, user)
     return user
 
 
