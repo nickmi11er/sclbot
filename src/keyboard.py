@@ -126,7 +126,7 @@ def groups_kb(groups, private_ch):
     
     for g in groups:
         row = []
-        row.append(InlineKeyboardButton(g[1], callback_data=pref + str(g[0])))
+        row.append(InlineKeyboardButton(g['group_name'], callback_data=pref + str(g['group_id'])))
         murkup.append(row)
 
     return InlineKeyboardMarkup(murkup)

@@ -2,10 +2,10 @@
 from openpyxl import load_workbook
 from datetime import datetime
 import const
-import data_manager as dm
 import date_manager
 import re
 import subprocess
+from models.user import User
 
 pt = re.compile(r'(?:\s*([0-9]+(?:,[0-9]+)*)+\s*(н|ч)+\s*)?\s*(.+)', re.UNICODE)
 wb2 = load_workbook(filename=const.assets_dir + '/scl.xlsx')
@@ -143,8 +143,7 @@ def _get_scl(gp_nm, date):
 
 def get_scl_with(dt, id):
     date = datetime.now()
-    user = dm.get_user(id)
-    gp_name = user[3]
+    user = User.get(id)
     if dt is not None:
         date = dt
 
@@ -152,7 +151,7 @@ def get_scl_with(dt, id):
         return u'Учеба еще на началась'
 
     out = 'Расписание пар на {} ({}): \n\n'.format(date.strftime('%d.%m.%Y'), date_manager.rus_week_day[date.weekday()])
-    res = _get_scl(gp_name, date)
+    res = _get_scl(user.group_name, date)
 
     if res:
         for r in res:

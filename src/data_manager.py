@@ -4,30 +4,34 @@ import sqlite3
 import const
 from cache_manager import Cache
 
+def dict_factory(cursor, row):
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d
+
 logging.basicConfig(filename=const.root_path + '/log.txt', level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 DB_NAME = const._db_name
-cache = Cache()
 
 def connect():
-    return sqlite3.connect(DB_NAME, check_same_thread = False)
+    conn = sqlite3.connect(DB_NAME, check_same_thread = False)
+    conn.row_factory = dict_factory
+    return conn
 
 def users_list():
     conn = connect()
     users = conn.cursor().execute(
-        "SELECT u.tg_user_id, u.username, r.role_name FROM users u JOIN roles r ON u.role = r.role_id ").fetchall()
+        "SELECT users.username, users.tg_user_id, users.role, groups.group_name, groups.group_id FROM users INNER JOIN groups ON users.group_id = groups.group_id").fetchall()
     conn.close()
     return users
 
 
-def get_user(tg_user_id):
-    user = cache.get(tg_user_id)
-    if not user:
-        conn = connect()
-        user = conn.cursor().execute("SELECT users.username, users.tg_user_id, users.role, groups.group_name FROM users INNER JOIN groups ON users.group_id = groups.group_id WHERE users.tg_user_id = (?)",
+def get_user(tg_user_id, flush=False):
+    conn = connect()
+    user = conn.cursor().execute("SELECT users.username, users.tg_user_id, users.role, groups.group_name, groups.group_id FROM users INNER JOIN groups ON users.group_id = groups.group_id WHERE users.tg_user_id = (?)",
                                  (tg_user_id, )).fetchone()
-        conn.close()
-        cache.set(tg_user_id, user)
+    conn.close()
     return user
 
 
@@ -167,6 +171,13 @@ def set_group(gp_id, user_id):
     else:
         conn.commit()
     conn.close()
+
+
+def get_group_by_id(gp_id):
+    conn = connect()
+    gp = conn.cursor().execute("SELECT groups.group_id, groups.group_name FROM groups WHERE group_id = (?)", (gp_id, )).fetchone()
+    conn.close()
+    return gp
 
 
 # def scl_info(conn):

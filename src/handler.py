@@ -3,7 +3,8 @@ from datetime import datetime as dm
 from tbot import AnsType
 import scl_manager as sm
 import keyboard as kb
-import data_manager, date_manager
+import date_manager
+from models.user import User
 
 current_shown_dates={}
 
@@ -77,7 +78,7 @@ class GroupButtonHandler(ButtonHandler):
                 username = user.first_name.encode('utf-8')
             if user.last_name:
                 username += ' {}'.format(user.last_name.encode('utf-8'))
-        data_manager.add_or_update_user(username, user.id, 2, gp_id)
+        User.create({'username':username, 'tg_user_id':user.id, 'role':2, 'group_id':gp_id}).save()
         markup = kb.menu_kb()
         self.params['text'] = 'Группа успешно обновлена'
         self.params['extra_msg'] = True

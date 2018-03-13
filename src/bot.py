@@ -164,7 +164,7 @@ def choose_gp(bt, update):
         user = data_manager.get_user(update.message.from_user.id)
     else:
         user = data_manager.get_user(update.message.chat.id)
-    update.message.reply_text(text = u'Ваша текущая группа: {}\nВыберите учебную группу'.format(user[3]), reply_markup=keyboard)
+    update.message.reply_text(text = u'Ваша текущая группа: {}\nВыберите учебную группу'.format(user['group_name']), reply_markup=keyboard)
 
 
 commands = {

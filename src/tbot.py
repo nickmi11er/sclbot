@@ -2,7 +2,7 @@
 from enum import Enum
 import logging
 from datetime import datetime as dm
-import data_manager
+from models.user import User
 from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters
 
 class AnsType(Enum):
@@ -63,11 +63,11 @@ class Bot():
         return None
 
     def echo_for_all(self, message):
-        users = data_manager.users_list()
+        users = User.getAll()
         for u in users:
             if int(u[0]) > 0: # skip negative numbers for groups 
                 logging.info(u'Send \'{}\' to {}'.format(message, u[0]))
-                self.updater.bot.send_message(chat_id=u[0], text=message)
+                self.updater.bot.send_message(chat_id=u.tg_user_id, text=message)
 
     def send_answer(self, bt, args):
         qy = args['query']
