@@ -32,7 +32,11 @@ class Model(object):
 
     @classmethod
     def getAll(cls):
-        return cls._get_all()
+        res_objs = []
+        entities =  cls._get_all()
+        for ent in entities:
+            res_objs.append(cls.create(ent))
+        return res_objs
 
     # Add or update entity in DB and/or cache
     def save(self):
