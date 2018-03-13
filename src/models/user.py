@@ -53,6 +53,15 @@ class User(Model):
             return user
         else:
             return None
+
+    @staticmethod
+    def _get_all():
+        users = []
+        entities = dm.users_list()
+        for ent in entities:
+            users.append(User.create(ent))
+        return users
+        
             
 
 

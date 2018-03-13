@@ -30,6 +30,10 @@ class Model(object):
             return entity
         return entity
 
+    @classmethod
+    def getAll(cls):
+        return cls._get_all()
+
     # Add or update entity in DB and/or cache
     def save(self):
         raise NotImplementedError('Method not implemented')
@@ -43,6 +47,10 @@ class Model(object):
 
     @staticmethod
     def _fetch_by_id(key):
+        raise NotImplementedError('Method not implemented')
+
+    @staticmethod
+    def _get_all():
         raise NotImplementedError('Method not implemented')
         
 
