@@ -4,6 +4,8 @@ import logging
 from datetime import datetime as dm
 from models.user import User
 from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters
+from telegram.error import (TelegramError, Unauthorized, BadRequest, 
+                            TimedOut, ChatMigrated, NetworkError)
 
 class AnsType(Enum):
     SEND = 1,
@@ -67,7 +69,10 @@ class Bot():
         for u in users:
             if u.tg_user_id > 0: # skip negative numbers for groups 
                 logging.info(u'Send \'{}\' to {}'.format(message, u.tg_user_id))
-                self.updater.bot.send_message(chat_id=u.tg_user_id, text=message)
+                try:
+                    self.updater.bot.send_message(chat_id=u.tg_user_id, text=message)
+                except TelegramError:
+                    logging.error('Cant send message to {}'.format(u.tg_user_id))
 
     def send_answer(self, bt, args):
         qy = args['query']
