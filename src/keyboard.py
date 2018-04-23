@@ -87,11 +87,17 @@ def weekday_kb(current_day, is_nex_week):
 
     row = []
     if not is_nex_week:
-        row.append(InlineKeyboardButton("След. неделя", callback_data=pref + '-1'))
+        row.append(InlineKeyboardButton("➡️", callback_data=pref + '-1'))
     else:
-        row.append(InlineKeyboardButton("Пред. неделя", callback_data=pref + '-2'))
+        row.append(InlineKeyboardButton("⬅️", callback_data=pref + '-2'))
 
-    row.append(InlineKeyboardButton("Календарь", callback_data='calendar-day--3'))
+    if not is_nex_week:
+        week_sql_code = '-4'
+    else:
+        week_sql_code = '-5'
+    row.append(InlineKeyboardButton("📃", callback_data=pref + week_sql_code))
+
+    row.append(InlineKeyboardButton("📆", callback_data='calendar-day--3'))
     keyboard.append(row)
     return InlineKeyboardMarkup(keyboard)
 

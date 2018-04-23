@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from openpyxl import load_workbook
-from datetime import datetime
+from datetime import datetime, timedelta
 import const
 import date_manager
 import re
@@ -138,7 +138,8 @@ def _get_scl(gp_nm, date):
                             ch_flag += 1
                 findall = True
                 break
-    return result                   
+    return result     
+        
 
 
 def get_scl_with(dt, id):
@@ -157,6 +158,28 @@ def get_scl_with(dt, id):
         for r in res:
             out = out + r + "\n"
     else:
-        out = u"Пар нет. Отдыхай!"
+        out = out + "Пар нет. Отдыхай!\n"
 
+    return out
+
+
+
+def get_week_scl(dt, id):
+    date = datetime.now()
+    user = User.get(id)
+    if dt:
+        date = dt      
+
+    start = date - timedelta(days=date.weekday())
+    end = start + timedelta(days=6)  
+
+    if start < start_dt:
+        return u'Учеба еще на началась'  
+
+    out = ''
+    for i in range(0, 6):
+        if i > 0:
+            out = out + '\n'
+        out = out + get_scl_with(date_manager.get_day_over(i, start), id)
+        
     return out

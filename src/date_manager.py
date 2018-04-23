@@ -12,5 +12,5 @@ rus_week_day = {
 }
 
 
-def get_day_over(count):
-    return datetime.datetime.now() + datetime.timedelta(days=count)
+def get_day_over(count, date=datetime.datetime.now()):
+    return date + datetime.timedelta(days=count)

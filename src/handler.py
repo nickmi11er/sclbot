@@ -115,17 +115,21 @@ class WeekdayButtonHandler(ButtonHandler):
         super(WeekdayButtonHandler, self).__init__(query)
         num = int(query.data[3:])
         markup = None
+        if query.message.chat.type == 'private':
+            id = query.from_user.id
+        else:
+            id = query.message.chat.id
         if num == -1:
             markup = kb.weekday_kb(0, True)
             text = 'На какой день недели?'
         elif num == -2:
             markup = kb.weekday_kb(dm.now().weekday(), False)
             text = 'На какой день недели?'
+        elif num == -4:
+            text = sm.get_week_scl(dm.now(), id)
+        elif num == -5:
+            text = sm.get_week_scl(date_manager.get_day_over(7), id)
         else:
-            if query.message.chat.type == 'private':
-                id = query.from_user.id
-            else:
-                id = query.message.chat.id
             text = sm.get_scl_with(date_manager.get_day_over(num - dm.now().weekday()), id)
         self.params['text'] = text
         self.params['kb'] = markup
