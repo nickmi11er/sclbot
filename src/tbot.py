@@ -65,8 +65,8 @@ class Bot():
     def echo_for_all(self, message):
         users = User.getAll()
         for u in users:
-            if int(u[0]) > 0: # skip negative numbers for groups 
-                logging.info(u'Send \'{}\' to {}'.format(message, u[0]))
+            if u.tg_user_id > 0: # skip negative numbers for groups 
+                logging.info(u'Send \'{}\' to {}'.format(message, u.tg_user_id))
                 self.updater.bot.send_message(chat_id=u.tg_user_id, text=message)
 
     def send_answer(self, bt, args):
