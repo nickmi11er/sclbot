@@ -57,7 +57,7 @@ def updscl(bt, update):
 
 
 # CommandHandler: Расписание пар на текущий день
-@bot.handle(name='s', p_args=True)
+@bot.handle(name='s')
 def schedule(bt, update):
     res = u''
 
