@@ -203,7 +203,7 @@ def scl_notifier(bt, job):
     if 20 <= current_hour < 21 and not notified:
         notified = True
         for subscriber in data_manager.get_subscribers():
-            bt.send_message(chat_id=subscriber[0], text=scl_manager.get_scl_with(date_manager.get_day_over(1), subscriber[1]))
+            bt.send_message(chat_id=subscriber['chat_id'], text=scl_manager.get_scl_with(date_manager.get_day_over(1), subscriber['tg_user_id']))
     elif current_hour >= 21:
         notified = False
 
