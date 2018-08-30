@@ -139,10 +139,12 @@ def _get_scl(gp_nm, date):
                         for i in ent:
                             res = choose_task(i, wleft)
                             if res is not None:
+                                if res == 'kostil':
+                                    continue
                                 cl_nums = re.split(r'\n', cl_num)
                                 if len(cl_nums) == 2:
                                     cl_num = cl_nums[ch_flag]
-                                result.append('{} {} ({}){}'.format(time, res, cl_num, task_tp))
+                                result.append('{} {} {} {}'.format(time, res, cl_num, task_tp))
                                 break
                             ch_flag += 1
                 findall = True
