@@ -7,11 +7,11 @@ import re
 import subprocess
 from models.user import User
 
-pt = re.compile(r'(?:\s*([0-9]+(?:,[0-9]+)*)+\s*(н|ч)+\s*)?\s*(.+)', re.UNICODE)
+pt = re.compile(r'(?:\s*([0-9]+(?:,\s*[0-9]+)*)+\s*(н|ч)+\s*)?\s*(.+)', re.UNICODE)
 wb2 = load_workbook(filename=const.assets_dir + '/scl.xlsx')
 ws2 = wb2.worksheets[0]
 
-start_dt = datetime.strptime('01.09.2018', '%d.%m.%Y')
+start_dt = datetime.strptime('03.09.2018', '%d.%m.%Y')
 end_dt = datetime.strptime('31.05.2019', '%d.%m.%Y')
 start_holy_dt = datetime.strptime('29.05.2019', '%d.%m.%Y')
 
@@ -51,7 +51,7 @@ def choose_task(entity, wleft):
     entity = entity.encode('utf-8')
     res = pt.match(entity)
     if res is not None and res.group(1) is not None:
-        num_weeks = re.split(r',', res.group(1))
+        num_weeks = re.split(r',', res.group(1).replace(' ', ''))
         for num in num_weeks:
             if int(num) == int(wleft):
                 return res.group(3)
