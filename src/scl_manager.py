@@ -11,7 +11,9 @@ pt = re.compile(r'(?:\s*([0-9]+(?:,[0-9]+)*)+\s*(н|ч)+\s*)?\s*(.+)', re.UNICOD
 wb2 = load_workbook(filename=const.assets_dir + '/scl.xlsx')
 ws2 = wb2.worksheets[0]
 
-start_dt = datetime.strptime('05.02.2018', '%d.%m.%Y')
+start_dt = datetime.strptime('01.09.2018', '%d.%m.%Y')
+end_dt = datetime.strptime('31.05.2019', '%d.%m.%Y')
+start_holy_dt = datetime.strptime('29.05.2019', '%d.%m.%Y')
 
 scl_time = {
     1: "09:00-10:30",
@@ -100,10 +102,13 @@ def _get_scl(gp_nm, date):
                     fullnm = cn + str(daynum)
                     task_tp = ws2[fullnm].value
                     # если тип занятия - практика, добавляем символ восклицательного знака
-                    if task_tp.encode('utf-8') == 'пр':
-                        task_tp = ' ❗'
-                    elif task_tp.encode('utf-8') == 'лр':
-                        task_tp = ' 👩‍🔬'
+                    if task_tp:
+                        if task_tp.encode('utf-8') == 'пр':
+                            task_tp = ' ❗'
+                        elif task_tp.encode('utf-8') == 'лр':
+                            task_tp = ' 👩‍🔬'
+                        else:
+                            task_tp = ''
                     else:
                         task_tp = ''
 
@@ -111,10 +116,14 @@ def _get_scl(gp_nm, date):
                     cn = inc_col_name(cn)
                     fullnm = cn + str(daynum)
                     cl_num = ws2[fullnm].value
-                    if isinstance(cl_num, long) or isinstance(cl_num, float):
-                        cl_num = str(int(cl_num))
+                    if cl_num:
+                        if isinstance(cl_num, long) or isinstance(cl_num, float):
+                            cl_num = str(int(cl_num))
+                        else:
+                            cl_num = cl_num.encode('utf-8')
+                        cl_num = '(' + cl_num + ')'
                     else:
-                        cl_num = cl_num.encode('utf-8')
+                        cl_num = ''
 
                     # проверяем существует ли вариативность пар на один и тот же промежуток времени
                     ent = re.split(r'\n', val)
@@ -123,7 +132,7 @@ def _get_scl(gp_nm, date):
                         if res is not None:
                             if res == 'kostil':
                                 res = ent[0].encode('utf-8')
-                            result.append('{} {} ({}){}'.format(time, res, cl_num, task_tp))
+                            result.append('{} {} {} {}'.format(time, res, cl_num, task_tp))
                     # если существует вариативность, выбираем необходимый предмет
                     elif len(ent) > 1:
                         ch_flag = 0
@@ -149,7 +158,13 @@ def get_scl_with(dt, id):
         date = dt
 
     if date < start_dt:
-        return u'Учеба еще на началась'
+        return u'Учеба еще не началась'
+
+    if date >= end_dt:
+        return u'Учеба закончилась. Удачи на сессии'
+
+    if date >= start_holy_dt:
+        return u'Летние каникулы. Отдыхай!'
 
     out = 'Расписание пар на {} ({}): \n\n'.format(date.strftime('%d.%m.%Y'), date_manager.rus_week_day[date.weekday()])
     res = _get_scl(user.group_name, date)
