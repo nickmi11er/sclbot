@@ -182,7 +182,7 @@ def get_scl_with(dt, id):
 
 
 def get_week_scl(dt, id):
-    date = datetime.now()
+    date = date_manager.m_now()
     user = User.get(id)
     if dt:
         date = dt      

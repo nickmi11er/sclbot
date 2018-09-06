@@ -195,11 +195,12 @@ def echo(bt, upd):
 
 notified = False
 def scl_notifier(bt, job):
-    if dm.now().weekday() == 5:
+    dm_now = date_manager.m_now()
+    if dm_now.weekday() == 5:
         return
 
     global notified
-    current_hour = dm.now().hour
+    current_hour = dm_now.hour
     if 20 <= current_hour < 21 and not notified:
         notified = True
         for subscriber in data_manager.get_subscribers():
@@ -207,8 +208,12 @@ def scl_notifier(bt, job):
     elif current_hour >= 21:
         notified = False
 
+def local_time_check():
+    dm_now = date_manager.m_now()
+    return dm_now.strftime("Now %d.%m.%Y %H:%M")
 
 def main():
+    print local_time_check()
     bot.polling()
     print('Bot is started...')
     scl_notifier_job = bot.add_repeating_job(scl_notifier)
