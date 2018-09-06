@@ -154,7 +154,7 @@ def _get_scl(gp_nm, date):
 
 
 def get_scl_with(dt, id):
-    date = datetime.now()
+    date = date_manager.m_now()
     user = User.get(id)
     if dt is not None:
         date = dt
