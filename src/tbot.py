@@ -3,6 +3,7 @@ from enum import Enum
 import logging
 from datetime import datetime as dm
 from models.user import User
+from telegram import ParseMode
 from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters
 from telegram.error import (TelegramError, Unauthorized, BadRequest, 
                             TimedOut, ChatMigrated, NetworkError)
@@ -80,7 +81,12 @@ class Bot():
             bt.edit_message_text(text=args['text'],
                                     chat_id=qy.message.chat_id,
                                     message_id=qy.message.message_id,
-                                    reply_markup=args['kb'])
+                                    reply_markup=args['kb'],
+                                    parse_mode=ParseMode.MARKDOWN)
             if 'extra_msg' in args and args['extra_msg']:
-                bt.send_message(chat_id = qy.message.chat_id, text = args['extra_msg_text'], reply_markup=args['extra_kb'])
+                bt.send_message(chat_id = qy.message.chat_id, text = args['extra_msg_text'], reply_markup=args['extra_kb'], parse_mode=ParseMode.MARKDOWN)
         bt.answer_callback_query(qy.id, text="")
+
+
+    def reply(self, update, text, keyboard=None):
+        update.message.reply_text(text, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN)

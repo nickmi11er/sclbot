@@ -47,13 +47,13 @@ def check_permission(user_id):
 # Возвращает id пользователя, сделавшего запрос
 @bot.handle(name='my_id')
 def my_id(bt, update):
-    update.message.reply_text("Ваш ID: {}".format(update.message.from_user.id))
+    bot.reply(update, "Ваш ID: {}".format(update.message.from_user.id))
 
 
 @bot.handle(name='updscl')
 def updscl(bt, update):
     scl_manager.updscl()
-    update.message.reply_text('Расписание успешно обновлено!')
+    bot.reply(update, 'Расписание успешно обновлено!')
 
 
 # CommandHandler: Расписание пар на текущий день
@@ -68,7 +68,7 @@ def schedule(bt, update):
 
     res = scl_manager.get_scl_with(None, id) 
     log_bot_request(update.message, 'Schedule')
-    update.message.reply_text(res)
+    bot.reply(update, res)
 
 
 
@@ -77,7 +77,7 @@ def schedule(bt, update):
 def schedule_with(bt, update):
     log_bot_request(update.message, 'Schedule With')
     keyboard = kb.weekday_kb(dm.now().weekday(), False)
-    update.message.reply_text('На какой день недели?', reply_markup=keyboard)
+    bot.reply(update, 'На какой день недели?', keyboard)
 
 
 @bot.handle(type=HandlerType.BUTTON)
@@ -92,16 +92,16 @@ def button(bt, update):
             
 
 # CommandHandler: Акакдемический план
-@bot.handle(name='ap')
-def academy_plan(bt, update):
-    log_bot_request(update.message, 'Academy Plan')
-    update.message.reply_text(data_manager.get_academy_plan())
+# @bot.handle(name='ap')
+# def academy_plan(bt, update):
+#     log_bot_request(update.message, 'Academy Plan')
+#     update.message.reply_text(data_manager.get_academy_plan())
 
 
-@bot.handle(name='ll')
-def lecturers_list(bt, update):
-    log_bot_request(update.message, 'get lecturers list')
-    update.message.reply_text(data_manager.get_lecturers())
+# @bot.handle(name='ll')
+# def lecturers_list(bt, update):
+#     log_bot_request(update.message, 'get lecturers list')
+#     update.message.reply_text(data_manager.get_lecturers())
 
 
 @bot.handle(name='notime')
@@ -115,7 +115,7 @@ def notify_me(bt, update):
     else:
         msg = 'Вы уже подписаны на уведомления'
 
-    update.message.reply_text(msg)
+    bot.reply(update, msg)
 
 
 @bot.handle(name='unsub')
@@ -129,7 +129,7 @@ def unsubscribe(bt, update):
     else:
         msg = 'Вы не подписаны на уведомления'
 
-    update.message.reply_text(msg)
+    bot.reply(update, msg)
 
 
 @bot.handle(name='start')
@@ -164,13 +164,13 @@ def choose_gp(bt, update):
         user = data_manager.get_user(update.message.from_user.id)
     else:
         user = data_manager.get_user(update.message.chat.id)
-    update.message.reply_text(text = u'Ваша текущая группа: {}\nВыберите учебную группу'.format(user['group_name']), reply_markup=keyboard)
+    bot.reply(update, u'Ваша текущая группа: {}\nВыберите учебную группу'.format(user['group_name']), keyboard)
 
 
 commands = {
     u'Расписание на сегодня': schedule,
     u'Расписание на указанный день': schedule_with,
-    u'Академический план': academy_plan,
+    # u'Академический план': academy_plan,
     u'Уведомлять о событиях': notify_me,
     u'Выбрать группу': choose_gp
 }

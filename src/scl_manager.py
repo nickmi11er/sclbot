@@ -104,13 +104,13 @@ def _get_scl(gp_nm, date):
                     # если тип занятия - практика, добавляем символ восклицательного знака
                     if task_tp:
                         if task_tp.encode('utf-8') == 'пр':
-                            task_tp = ' ❗'
+                            task_tp = '❗'
                         elif task_tp.encode('utf-8') == 'лр':
-                            task_tp = ' 👩‍🔬'
+                            task_tp = '👩‍🔬'
                         else:
-                            task_tp = ''
+                            task_tp = '▫️'
                     else:
-                        task_tp = ''
+                        task_tp = '▫️'
 
                     cn = inc_col_name(cn)
                     cn = inc_col_name(cn)
@@ -132,7 +132,7 @@ def _get_scl(gp_nm, date):
                         if res is not None:
                             if res == 'kostil':
                                 res = ent[0].encode('utf-8')
-                            result.append('{} {} {} {}'.format(time, res, cl_num, task_tp))
+                            result.append('{} {} {} {}'.format(task_tp, time, res, cl_num))
                     # если существует вариативность, выбираем необходимый предмет
                     elif len(ent) > 1:
                         ch_flag = 0
@@ -144,14 +144,14 @@ def _get_scl(gp_nm, date):
                                 cl_nums = re.split(r'\n', cl_num)
                                 if len(cl_nums) == 2:
                                     cl_num = cl_nums[ch_flag]
-                                result.append('{} {} {} {}'.format(time, res, cl_num, task_tp))
+                                result.append('{} {} {} {}'.format(task_tp, time, res, cl_num))
                                 break
                             ch_flag += 1
                 findall = True
                 break
     return result     
         
-
+m_bold = lambda s: '*' + s + '*'
 
 def get_scl_with(dt, id):
     date = date_manager.m_now()
@@ -168,7 +168,7 @@ def get_scl_with(dt, id):
     if date >= start_holy_dt:
         return u'Летние каникулы. Отдыхай!'
 
-    out = 'Расписание пар на {} ({}): \n\n'.format(date.strftime('%d.%m.%Y'), date_manager.rus_week_day[date.weekday()])
+    out = m_bold('Расписание пар на {} ({}):'.format(date.strftime('%d.%m.%Y'), date_manager.rus_week_day[date.weekday()])) + '\n\n'
     res = _get_scl(user.group_name, date)
 
     if res:
@@ -178,7 +178,6 @@ def get_scl_with(dt, id):
         out = out + "Пар нет. Отдыхай!\n"
 
     return out
-
 
 
 def get_week_scl(dt, id):
