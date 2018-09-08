@@ -62,12 +62,12 @@ class Model(object):
     # except saved_hash
     def __hash__(self):
         args = vars(self)
-        _key = ()
-        for k in sorted(args, key=args.get):
+        _a_hash = 0
+        for k, v in args.iteritems():
             if k == 'saved_hash':
                 continue
-            _key = _key + (args[k],)
-        return hash(_key)
+            _a_hash = _a_hash + hash(v)
+        return _a_hash
 
 
     def __str__(self):
