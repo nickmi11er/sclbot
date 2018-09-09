@@ -172,6 +172,7 @@ commands = {
     u'Расписание на указанный день': schedule_with,
     # u'Академический план': academy_plan,
     u'Уведомлять о событиях': notify_me,
+    u'Отписаться от уведомлений':unsubscribe,
     u'Выбрать группу': choose_gp
 }
 
