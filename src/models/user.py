@@ -30,7 +30,7 @@ class User(Model):
         if self.__hash__() == self.saved_hash:
             return
         self.saved_hash = self.__hash__()
-        dm.add_or_update_user(self.username.encode('utf-8'), self.tg_user_id, self.role, self.group_id)
+        dm.add_or_update_user(self.username, self.tg_user_id, self.role, self.group_id)
         cache.set(self.tg_user_id, self)
 
 
