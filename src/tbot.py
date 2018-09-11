@@ -88,5 +88,10 @@ class Bot():
         bt.answer_callback_query(qy.id, text="")
 
 
+    def send_message(self, bt, chat_id, text):
+        bt.send_message(chat_id=chat_id, text=text, parse_mode=ParseMode.MARKDOWN)
+
+
+
     def reply(self, update, text, keyboard=None):
         update.message.reply_text(text, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN)
