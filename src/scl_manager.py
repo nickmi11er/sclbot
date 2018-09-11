@@ -7,7 +7,7 @@ import re
 import subprocess
 from models.user import User
 
-pt = re.compile(r'(?:\s*([0-9]+(?:,\s*[0-9]+)*)+\s*(н|ч)+\s*)?\s*(.+)', re.UNICODE)
+pt = re.compile(r'(?:(кр|)\s*([0-9]+(?:,\s*[0-9]+)*)+\s*(н|ч)+\s*)?\s*(.+)', re.UNICODE)
 wb2 = load_workbook(filename=const.assets_dir + '/scl.xlsx')
 ws2 = wb2.worksheets[0]
 
@@ -50,11 +50,17 @@ def inc_col_name(col_name):
 def choose_task(entity, wleft):
     entity = entity.encode('utf-8')
     res = pt.match(entity)
-    if res is not None and res.group(1) is not None:
-        num_weeks = re.split(r',', res.group(1).replace(' ', ''))
+    if res and res.group(1) and res.group(2):
+        num_weeks = re.split(r',', res.group(2).replace(' ', ''))
         for num in num_weeks:
             if int(num) == int(wleft):
-                return res.group(3)
+                return None
+        return res.group(4)
+    elif res and res.group(2):
+        num_weeks = re.split(r',', res.group(2).replace(' ', ''))
+        for num in num_weeks:
+            if int(num) == int(wleft):
+                return res.group(4)
     else:
         return 'kostil'
             
