@@ -55,7 +55,7 @@ class CalendarDayButtonHandler(ButtonHandler):
         elif self.saved_date:
             day=query.data[13:]
             date = dm.strptime('{}{}{}'.format(self.saved_date[0],int(self.saved_date[1]), int(day)), '%Y%m%d')
-            res = sm.get_scl_with(date, id)
+            res = sm.get_scl(date, id)
                 
         self.params['text'] = res
         self.params['kb'] = markup
@@ -130,7 +130,7 @@ class WeekdayButtonHandler(ButtonHandler):
         elif num == -5:
             text = sm.get_week_scl(date_manager.get_day_over(7), id)
         else:
-            text = sm.get_scl_with(date_manager.get_day_over(num - dm.now().weekday()), id)
+            text = sm.get_scl(date_manager.get_day_over(num - dm.now().weekday()), id)
         self.params['text'] = text
         self.params['kb'] = markup
         self.ready = True

@@ -66,7 +66,7 @@ def schedule(bt, update):
     else:
         id = update.message.chat.id
 
-    res = scl_manager.get_scl_with(None, id) 
+    res = scl_manager.get_scl(None, id) 
     log_bot_request(update.message, 'Schedule')
     bot.reply(update, res)
 
