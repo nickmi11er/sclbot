@@ -179,6 +179,27 @@ def get_group_by_id(gp_id):
     conn.close()
     return gp
 
+def get_group_by_name(gp_name):
+    conn = connect()
+    gp = conn.cursor().execute("SELECT groups.group_id, groups.group_name FROM groups WHERE group_name = (?)", (gp_name, )).fetchone()
+    conn.close()
+    return gp
+
+def add_group(gp_name):
+    conn = connect()
+    gp_id = None
+    try:
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO groups (group_name) VALUES (?)", (gp_name, ))
+        gp_id = cursor.lastrowid
+    except sqlite3.DatabaseError as err:
+        logging.error(err)
+        conn.rollback()
+    else:
+        conn.commit()
+    conn.close()
+    return gp_id
+
 
 # def scl_info(conn):
 #     meta = dm.get_meta(conn)

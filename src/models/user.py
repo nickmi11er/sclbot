@@ -20,8 +20,15 @@ class User(Model):
     @classmethod
     def create(cls, args):
         user = User()
-        group_name = dm.get_group_by_id(args['group_id'])['group_name']
-        args['group_name'] = group_name
+        gp_name = args['group_name']
+        gp = dm.get_group_by_name(gp_name)
+
+        if gp:
+            gp_id = gp['group_id']
+        else:
+            gp_id = dm.add_group(gp_name)
+    
+        args['group_id'] = gp_id
         cls._map(user, args)
         return user
 
