@@ -92,10 +92,11 @@ def get_task(entity, wleft):
 def get_scl(dt, id):
     tasks = []
     date = date_manager.get_day_over(0, date_manager.m_now())
-    wleft = ((date - start_dt).days + 1) / 7 + 1  # номер текущей недели
     user = User.get(id)
     if dt is not None:
         date = dt
+
+    wleft = ((date - start_dt).days + 1) / 7 + 1  # номер текущей недели
 
     if date < start_dt:
         return u'Учеба еще не началась'
@@ -113,7 +114,9 @@ def get_scl(dt, id):
         index = 1
     
     daynum = daynum + index
-    day = urllib2.urlopen("http://localhost:9000/scl?year=" + study_year + "&group=" + user.group_name.encode("utf-8") + "&dow=" + str(daynum)).read()
+    request_url = "http://localhost:9000/scl?year=" + study_year + "&group=" + user.group_name.encode("utf-8") + "&dow=" + str(dow)
+    print(request_url)
+    day = urllib2.urlopen(request_url).read()
     subjects = json.loads(day)["subjects"]
 
     for i in range(0, 12, 2):
