@@ -123,16 +123,78 @@ def menu_kb():
 
 
 def groups_kb(groups, private_ch):
-    murkup = []
+    markup = []
+    row_count = int(len(groups) / 2)
 
     if private_ch:
-        pref = 'gp-'
-    else:
         pref = 'gp-p-'
-    
-    for g in groups:
-        row = []
-        row.append(InlineKeyboardButton(g['group_name'], callback_data=pref + str(g['group_id'])))
-        murkup.append(row)
+    else:
+        pref = 'gp-'
 
-    return InlineKeyboardMarkup(murkup)
+
+    for i in range(row_count):
+        gp1 = groups[i * 2]
+        gp2 = groups[i * 2 + 1]
+        row = []
+        row.append(InlineKeyboardButton(gp1, callback_data=pref + gp1))
+        row.append(InlineKeyboardButton(gp2, callback_data=pref + gp2))
+        markup.append(row)
+
+    if float(len(groups)) % 2 > 0:
+        row = []
+        row.append(InlineKeyboardButton(groups[len(groups) - 1], callback_data=pref + groups[len(groups) - 1]))
+
+    return InlineKeyboardMarkup(markup)
+
+
+def inst_kb(institutes, private_ch):
+    markup = []
+
+    row_count = int(len(institutes) / 2)
+    for i in institutes:
+        if not i or i == "":
+            institutes.remove(i)
+
+    if private_ch:
+        pref = 'inst-p-'
+    else:
+        pref = 'inst-'
+
+    for i in range(row_count):
+        inst1 = institutes[i * 2]
+        inst2 = institutes[i * 2 + 1]
+        row = []
+        row.append(InlineKeyboardButton(inst1, callback_data=pref + inst1))
+        row.append(InlineKeyboardButton(inst2, callback_data=pref + inst2))
+        markup.append(row)
+
+    if float(len(institutes)) % 2 > 0:
+        row = []
+        row.append(InlineKeyboardButton(institutes[len(institutes) - 1], callback_data=pref + institutes[len(institutes) - 1]))
+
+    return InlineKeyboardMarkup(markup)
+
+
+def root_groups_kb(root_gps, private_ch):
+    markup = []
+    row_count = int(len(root_gps) / 2)
+    pref = 'rgp-'
+
+    if private_ch:
+        pref = 'rgp-p-'
+    else:
+        pref = 'rgp-'
+
+    for i in range(row_count):
+        r_gp1 = root_gps[i * 2]
+        r_gp2 = root_gps[i * 2 + 1]
+        row = []
+        row.append(InlineKeyboardButton(r_gp1, callback_data=pref + r_gp1))
+        row.append(InlineKeyboardButton(r_gp2, callback_data=pref + r_gp2))
+        markup.append(row)
+
+    if float(len(root_gps)) % 2 > 0:
+        row = []
+        row.append(InlineKeyboardButton(root_gps[len(root_gps) - 1], callback_data=pref + root_gps[len(root_gps) - 1]))
+
+    return InlineKeyboardMarkup(markup)

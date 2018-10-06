@@ -19,6 +19,10 @@ class ButtonHandlerFactory():
             return CalendarDayButtonHandler(query)
         elif data == 'next-month' or data == 'previous-month':
             return MonthButtonHandler(query)
+        elif data[0:5] == 'inst-':
+            return InstituteButtonHandler(query)
+        elif data[0:4] == 'rgp-':
+            return RootGroupButtonHandler(query)
             
 
 class ButtonHandler(object):
@@ -67,24 +71,56 @@ class GroupButtonHandler(ButtonHandler):
         super(GroupButtonHandler, self).__init__(query)
         username = ''
         if query.data[3:5] == 'p-':
-            gp_id = query.data[5:]
+            gp_name = query.data[5:]
             user = query.message.chat
             if user.title:
                 username = user.title.encode('utf-8')
         else:
-            gp_id = query.data[3:]
+            gp_name = query.data[3:]
             user = query.from_user
             if user.first_name:
                 username = user.first_name.encode('utf-8')
             if user.last_name:
                 username += ' {}'.format(user.last_name.encode('utf-8'))
-        User.create({'username':username, 'tg_user_id':user.id, 'role':2, 'group_id':gp_id}).save()
+        User.create({'username':username, 'tg_user_id':user.id, 'role':2, 'group_name':gp_name}).save()
         markup = kb.menu_kb()
         self.params['text'] = 'Группа успешно обновлена'
         self.params['extra_msg'] = True
         self.params['extra_kb'] = markup
         self.params['extra_msg_text'] = 'Теперь вы можете воспользоваться командами'
         self.ready = True
+
+
+class RootGroupButtonHandler(ButtonHandler):
+    def __init__(self, query):
+            super(RootGroupButtonHandler, self).__init__(query)
+            if query.data[4:6] == 'p-':
+                private = True
+                groups = sm.groups(query.data[6:])
+            else:
+                groups = sm.groups(query.data[4:])
+                private = False
+
+            markup = kb.groups_kb(groups, private)
+            self.params['text'] = 'Выберите учебную группу'
+            self.params['kb'] = markup
+            self.ready = True
+
+
+class InstituteButtonHandler(ButtonHandler):
+    def __init__(self, query):
+            super(InstituteButtonHandler, self).__init__(query)
+            if query.data[5:7] == 'p-':
+                private = True
+                root_gps = sm.root_groups(query.data[7:])
+            else:
+                private = False
+                root_gps = sm.root_groups(query.data[5:])
+
+            markup = kb.root_groups_kb(root_gps, private)
+            self.params['text'] = 'Выберите учебную группу'
+            self.params['kb'] = markup
+            self.ready = True
 
 
 class MonthButtonHandler(ButtonHandler):

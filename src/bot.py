@@ -50,12 +50,6 @@ def my_id(bt, update):
     bot.reply(update, "Ваш ID: {}".format(update.message.from_user.id))
 
 
-@bot.handle(name='updscl')
-def updscl(bt, update):
-    scl_manager.updscl()
-    bot.reply(update, 'Расписание успешно обновлено!')
-
-
 # CommandHandler: Расписание пар на текущий день
 @bot.handle(name='s')
 def schedule(bt, update):
@@ -89,13 +83,6 @@ def button(bt, update):
         bot.send_answer(bt, params)
     elif query.data == 'ignore':
         bt.answer_callback_query(query.id, text="")
-            
-
-# CommandHandler: Акакдемический план
-# @bot.handle(name='ap')
-# def academy_plan(bt, update):
-#     log_bot_request(update.message, 'Academy Plan')
-#     update.message.reply_text(data_manager.get_academy_plan())
 
 
 # @bot.handle(name='ll')
@@ -135,21 +122,23 @@ def unsubscribe(bt, update):
 @bot.handle(name='start')
 def start(bt, update):
     log_bot_request(update.message, 'Start')
-    if private_chat(update.message.chat):
+    private = private_chat(update.message.chat)
+    if private:
         user = data_manager.get_user(update.message.from_user.id)
     else:
         user = data_manager.get_user(update.message.chat.id)
 
-    if user is not None:
+    if user:
         keyboard = kb.menu_kb()
         bt.send_message(chat_id = update.message.chat_id, text = 'Выберите команду', reply_markup=keyboard)
     else:
-        groups = data_manager.get_groups()
-        keyboard = kb.groups_kb(groups, private_chat(update.message.chat))
-        res = 'Выберите учебную группу'
+        institutes = scl_manager.institutes()
+        inst_kb = kb.inst_kb(institutes, private)
+
+        res = 'Выберите институт'
         if not  private_chat(update.message.chat):
             res = 'В данный момент я нахожусь в групповом чате. Выбранная группа будет одинаковой для всех членов чата.\n' + res
-        bt.send_message(chat_id = update.message.chat_id, text = res, reply_markup=keyboard)
+        bt.send_message(chat_id = update.message.chat_id, text = res, reply_markup=inst_kb)
 
 
 def private_chat(chat):
@@ -157,14 +146,17 @@ def private_chat(chat):
 
 
 def choose_gp(bt, update):
-    groups = data_manager.get_groups()
     private = private_chat(update.message.chat)
-    keyboard = kb.groups_kb(groups, private)
+    # keyboard = kb.groups_kb(groups, private)
+
+    institutes = scl_manager.institutes()
+    inst_kb = kb.inst_kb(institutes, private)
+
     if private:
         user = data_manager.get_user(update.message.from_user.id)
     else:
         user = data_manager.get_user(update.message.chat.id)
-    bot.reply(update, u'Ваша текущая группа: {}\nВыберите учебную группу'.format(user['group_name']), keyboard)
+    bot.reply(update, u'Ваша текущая группа: {}\nВыберите учебную группу'.format(user['group_name']), inst_kb)
 
 
 commands = {
@@ -205,7 +197,7 @@ def scl_notifier(bt, job):
     if 20 <= current_hour < 21 and not notified:
         notified = True
         for subscriber in data_manager.get_subscribers():
-            bot.send_message(bt, subscriber['chat_id'], scl_manager.get_scl_with(date_manager.get_day_over(1), subscriber['tg_user_id']))
+            bot.send_message(bt, subscriber['chat_id'], scl_manager.get_scl(date_manager.get_day_over(1), subscriber['tg_user_id']))
     elif current_hour >= 21:
         notified = False
 
