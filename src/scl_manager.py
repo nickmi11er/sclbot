@@ -18,6 +18,8 @@ class Task:
 
 pt = re.compile(r'(?:(кр|)\s*([0-9]+(?:,\s*[0-9]+)*)+\s*(н|ч)+\s*)?\s*(.+)', re.UNICODE)
 
+_api_url = 'http://localhost:9000/'
+
 start_dt = datetime.strptime('03.09.2018', '%d.%m.%Y')
 end_dt = datetime.strptime('31.05.2019', '%d.%m.%Y')
 start_holy_dt = datetime.strptime('29.05.2019', '%d.%m.%Y')
@@ -76,7 +78,7 @@ def choose_tsk(entity, wleft):
 
 def get_task(entity, wleft):
     result = None
-    entities = re.split(r'\n|\\', entity)
+    entities = re.split(r'\n|\/', entity)
     # Вариативности нет
     if len(entities) == 1:
         result = choose_tsk(entity, wleft)
@@ -114,8 +116,7 @@ def get_scl(dt, id):
         index = 1
     
     daynum = daynum + index
-    request_url = "http://localhost:9000/scl?year=" + study_year + "&group=" + user.group_name.encode("utf-8") + "&dow=" + str(dow)
-    print(request_url)
+    request_url = _api_url + "scl?year=" + study_year + "&group=" + user.group_name.encode("utf-8") + "&dow=" + str(dow)
     day = urllib2.urlopen(request_url).read()
     subjects = json.loads(day)["subjects"]
 
@@ -156,7 +157,7 @@ def get_scl(dt, id):
      
     if tasks:
         for t in tasks:
-            out = out + t.time + t.tp + ' ' + t.name + t.room + '\n'
+            out = out + t.tp + t.time + ' ' + t.name + t.room + '\n'
     else:
         out = out + "Пар нет. Отдыхай!\n"
 
@@ -164,13 +165,13 @@ def get_scl(dt, id):
 
 
 def institutes():
-    institutes = json.loads(urllib2.urlopen("http://localhost:9000/institutes").read())
+    institutes = json.loads(urllib2.urlopen(_api_url + "institutes").read())
     return institutes
 
 def root_groups(inst):
-    root_gps = json.loads(urllib2.urlopen("http://localhost:9000/rootGroups?inst="+inst.encode('utf-8')).read())
+    root_gps = json.loads(urllib2.urlopen(_api_url + "rootGroups?inst="+inst.encode('utf-8')).read())
     return root_gps
 
 def groups(root_gp):
-    groups = json.loads(urllib2.urlopen("http://localhost:9000/groups?rootGroup="+root_gp.encode('utf-8')).read())
+    groups = json.loads(urllib2.urlopen(_api_url + "groups?rootGroup="+root_gp.encode('utf-8')).read())
     return groups
