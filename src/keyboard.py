@@ -110,13 +110,14 @@ def menu_kb():
     markup.append(row)
 
     row = []
-    row.append(KeyboardButton('Академический план'))
     row.append(KeyboardButton('Уведомлять о событиях'))
+    row.append(KeyboardButton('Отписаться от уведомлений'))
     markup.append(row)
 
     row = []
-    row.append(KeyboardButton('Отписаться от уведомлений'))
     row.append(KeyboardButton('Выбрать группу'))
+    row.append(KeyboardButton('Легенда'))
+
     markup.append(row)
     keyboard = ReplyKeyboardMarkup(markup, resize_keyboard=True)
     return keyboard
@@ -143,6 +144,7 @@ def groups_kb(groups, private_ch):
     if float(len(groups)) % 2 > 0:
         row = []
         row.append(InlineKeyboardButton(groups[len(groups) - 1], callback_data=pref + groups[len(groups) - 1]))
+        markup.append(row)
 
     return InlineKeyboardMarkup(markup)
 
@@ -171,6 +173,7 @@ def inst_kb(institutes, private_ch):
     if float(len(institutes)) % 2 > 0:
         row = []
         row.append(InlineKeyboardButton(institutes[len(institutes) - 1], callback_data=pref + institutes[len(institutes) - 1]))
+        markup.append(row)
 
     return InlineKeyboardMarkup(markup)
 
@@ -196,5 +199,6 @@ def root_groups_kb(root_gps, private_ch):
     if float(len(root_gps)) % 2 > 0:
         row = []
         row.append(InlineKeyboardButton(root_gps[len(root_gps) - 1], callback_data=pref + root_gps[len(root_gps) - 1]))
+        markup.append(row)
 
     return InlineKeyboardMarkup(markup)

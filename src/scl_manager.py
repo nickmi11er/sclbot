@@ -110,6 +110,8 @@ def get_scl(dt, id):
         return u'Летние каникулы. Отдыхай!'
 
     dow = date.weekday()
+    if dow == 6:
+        return u"Пар нет. Отдыхай!\n"
     daynum = dow
     index = 0
     if wleft % 2 == 0:
@@ -159,7 +161,7 @@ def get_scl(dt, id):
         for t in tasks:
             out = out + t.tp + t.time + ' ' + t.name + t.room + '\n'
     else:
-        out = out + "Пар нет. Отдыхай!\n"
+        out = out + u"Пар нет. Отдыхай!\n"
 
     return out
 
