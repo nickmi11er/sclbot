@@ -16,9 +16,9 @@ class Task:
         self.tp = tp
         self.time = time
 
-pt = re.compile(r'(?:(кр|)\s*([0-9]+(?:,\s*[0-9]+)*)+\s*(н|ч)+\s*)?\s*(.+)', re.UNICODE)
+pt = re.compile(r'(?:(кр|)\s*([0-9]+(?:,|\s*[0-9]+)*)+\s*(н|ч)+\s*)?\s*(.+)', re.UNICODE)
 
-_api_url = 'http://localhost:9000/'
+_api_url = 'http://212.47.248.210:9000/'
 
 start_dt = datetime.strptime('03.09.2018', '%d.%m.%Y')
 end_dt = datetime.strptime('31.05.2019', '%d.%m.%Y')
