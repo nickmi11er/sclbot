@@ -61,19 +61,25 @@ def get_week_scl(dt, id):
 def choose_tsk(entity, wleft):
     res = pt.match(entity.encode('utf-8'))
     if res and res.group(1) and res.group(2):
-        num_weeks = re.split(r',|\s', res.group(2)).replace(' ', '')
+        num_weeks = re.split(r',|\s', res.group(2))
+        for n in num_weeks:
+            n.replace(' ', '')
         for num in num_weeks:
             if int(num) == int(wleft):
                 return None
         return res.group(4)
     elif res and res.group(2):
-        num_weeks = re.split(r',|\s', res.group(2)).replace(' ', '')
+        num_weeks = re.split(r',|\s', res.group(2))
+        for n in num_weeks:
+            n.replace(' ', '')
         for num in num_weeks:
             if int(num) == int(wleft):
                 return res.group(4)
     elif res and res.group(4):
         return res.group(4)
 
+test = u"10,12 14н Криптографические методы защиты информации"
+print(choose_tsk(test, 12))
 
 
 def get_task(entity, wleft):
