@@ -1,6 +1,6 @@
 .idea
 .vscode
-/assets/*
+*.sqlite
 *.pyc
 *.DS_Store
 **/log.txt

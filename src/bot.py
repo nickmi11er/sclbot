@@ -1,29 +1,20 @@
 # -*- coding: utf-8 -*-
 import data_manager, date_manager, scl_manager
 from handler import ButtonHandlerFactory
-from store_manager import SettingStore
 from datetime import datetime as dm
 import keyboard as kb
 from tbot import Bot, HandlerType
+from models.user import User
 import logging
 import const
-import signal
 import os
 
 
-s_store = SettingStore()
 logging.basicConfig(filename=const.root_path + '/log.txt', level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-BOT_TOKEN = s_store.get(const._bot_token_name)
-bot = Bot(BOT_TOKEN)
-        
 
-def sig_handler(signum, frame):
-    print "Recieve signal to suicide... PID = {}".format(os.getpid())
-    os._exit(0)
-
-signal.signal(signal.SIGUSR1, sig_handler)
+bot = Bot(const._bot_token)
 
 def log_bot_request(message, action):
     user = message.from_user
@@ -44,6 +35,20 @@ def check_permission(user_id):
     return user and user[3] == 1
 
 
+def auth(func):
+    def decorator(bt, update):
+        if private_chat(update.message.chat):
+            id = update.message.from_user.id
+        else:
+            id = update.message.chat.id
+        user = User.get(id)
+        if user:
+            func(bt, update)
+        else:
+            _welcome(bt, update, private_chat(update.message.chat))
+    return decorator
+
+
 # Возвращает id пользователя, сделавшего запрос
 @bot.handle(name='my_id')
 def my_id(bt, update):
@@ -51,6 +56,7 @@ def my_id(bt, update):
 
 
 # CommandHandler: Расписание пар на текущий день
+@auth
 @bot.handle(name='s')
 def schedule(bt, update):
     res = u''
@@ -62,11 +68,12 @@ def schedule(bt, update):
 
     res = scl_manager.get_scl(None, id) 
     log_bot_request(update.message, 'Schedule')
-    bot.reply(update, res)
+    bot.reply(update, res)           
 
 
 
 # CommandHandler: Расписание пар на заданный день недели
+@auth
 @bot.handle(name='sb')
 def schedule_with(bt, update):
     log_bot_request(update.message, 'Schedule With')
@@ -132,19 +139,23 @@ def start(bt, update):
         keyboard = kb.menu_kb()
         bt.send_message(chat_id = update.message.chat_id, text = 'Выберите команду', reply_markup=keyboard)
     else:
-        institutes = scl_manager.institutes()
-        inst_kb = kb.inst_kb(institutes, private)
+        _welcome(bt, update, private)
 
-        res = 'Выберите институт'
-        if not  private_chat(update.message.chat):
-            res = 'В данный момент я нахожусь в групповом чате. Выбранная группа будет одинаковой для всех членов чата.\n' + res
-        bt.send_message(chat_id = update.message.chat_id, text = res, reply_markup=inst_kb)
+
+def _welcome(bt, update, private):
+    institutes = scl_manager.institutes()
+    inst_kb = kb.inst_kb(institutes, private)
+
+    res = 'Выберите институт'
+    if not  private_chat(update.message.chat):
+        res = 'В данный момент я нахожусь в групповом чате. Выбранная группа будет одинаковой для всех членов чата.\n' + res
+    bt.send_message(chat_id = update.message.chat_id, text = res, reply_markup=inst_kb)
 
 
 def private_chat(chat):
     return chat.type == 'private'   
 
-
+@auth
 def choose_gp(bt, update):
     private = private_chat(update.message.chat)
     # keyboard = kb.groups_kb(groups, private)
@@ -179,6 +190,7 @@ commands = {
 @bot.handle(type=HandlerType.MESSAGE)
 def filter (bt, upd): 
     msg = upd.message
+    # bt.send_document(chat_id=upd.message.chat_id, document=upd.message.document, caption="Test Caption")
     if msg.reply_to_message and bot.pop_listened_msg(msg.reply_to_message) is not None:
         bot.echo_for_all(msg.text)
     else:

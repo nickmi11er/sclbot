@@ -26,6 +26,9 @@ class Message():
 class Bot():
     def __init__(self, tk):
         self.listened_msgs = []
+        if not tk:
+            raise Exception('Provided BOT_TOKEN is null')
+            return
         self.token = tk
         self.updater = Updater(self.token)
         self.dsp = self.updater.dispatcher
@@ -37,7 +40,7 @@ class Bot():
             if type == HandlerType.COMMAND:
                 self.dsp.add_handler(CommandHandler(command=name, callback=func, pass_args=p_args))
             elif type == HandlerType.MESSAGE:
-                self.dsp.add_handler(MessageHandler(Filters.text, func))
+                self.dsp.add_handler(MessageHandler(Filters.all, func))
             elif type == HandlerType.BUTTON:
                 self.dsp.add_handler(CallbackQueryHandler(func))
             def _decorator(*args, **kwargs):
