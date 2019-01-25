@@ -24,13 +24,13 @@ class Message():
         self.msg_id = msg_id
 
 class Bot():
-    def __init__(self, tk):
+    def __init__(self, tk, args=None):
         self.listened_msgs = []
         if not tk:
             raise Exception('Provided BOT_TOKEN is null')
             return
         self.token = tk
-        self.updater = Updater(self.token)
+        self.updater = Updater(self.token, request_kwargs=args)
         self.dsp = self.updater.dispatcher
         self.dsp.add_error_handler(lambda bot, update, _error: logging.warning('Update "%s" caused error "%s"' % (update, _error)))
 
