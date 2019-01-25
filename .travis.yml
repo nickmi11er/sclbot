@@ -1,9 +1,0 @@
-sudo: required
-
-service: 
-  - docker
-
-language: python
-
-after_success:
-  - sh .travis/deploy_dockerhub.sh
