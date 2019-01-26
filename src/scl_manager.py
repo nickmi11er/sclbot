@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
-import const
+from const import SCL_API
 import date_manager
 import re
 from models.user import User
@@ -17,8 +17,6 @@ class Task:
         self.time = time
 
 pt = re.compile(r'(?:(кр|)\s*([0-9]+(?:,|\s*[0-9]+)*)+\s*(н|ч)+\s*)?\s*(.+)', re.UNICODE)
-
-_api_url = 'http://212.47.248.210:9000/'
 
 start_dt = datetime.strptime('03.09.2018', '%d.%m.%Y')
 end_dt = datetime.strptime('31.05.2019', '%d.%m.%Y')
@@ -119,7 +117,7 @@ def get_scl(dt, id):
         index = 1
     
     daynum = daynum + index
-    request_url = _api_url + "scl?year=" + study_year + "&group=" + user.group_name.encode("utf-8") + "&dow=" + str(dow)
+    request_url = SCL_API + "/scl?year=" + study_year + "&group=" + user.group_name.encode("utf-8") + "&dow=" + str(dow)
     day = urllib2.urlopen(request_url).read()
     subjects = json.loads(day)["subjects"]
 
@@ -168,13 +166,13 @@ def get_scl(dt, id):
 
 
 def institutes():
-    institutes = json.loads(urllib2.urlopen(_api_url + "institutes").read())
+    institutes = json.loads(urllib2.urlopen(SCL_API + "/institutes").read())
     return institutes
 
 def root_groups(inst):
-    root_gps = json.loads(urllib2.urlopen(_api_url + "rootGroups?inst="+inst.encode('utf-8')).read())
+    root_gps = json.loads(urllib2.urlopen(SCL_API + "/rootGroups?inst="+inst.encode('utf-8')).read())
     return root_gps
 
 def groups(root_gp):
-    groups = json.loads(urllib2.urlopen(_api_url + "groups?rootGroup="+root_gp.encode('utf-8')).read())
+    groups = json.loads(urllib2.urlopen(SCL_API + "/groups?rootGroup="+root_gp.encode('utf-8')).read())
     return groups

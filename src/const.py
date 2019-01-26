@@ -7,12 +7,13 @@ assets_dir = os.path.join(root_path, 'assets')
 DB_PATH = assets_dir + '/data.sqlite'
 SCHEMA_PATH = assets_dir + '/schema.sql'
 LOG_PATH = root_path + '/log.txt'
-_bot_mode = os.getenv('MODE', 'test')
-_bot_token = os.getenv('BOT_TOKEN')
+SCL_API = os.getenv('SCL_API', 'http://localhost:9000')
+BOT_MODE = os.getenv('MODE', 'test')
+BOT_TOKEN = os.getenv('BOT_TOKEN')
 _proxy = os.getenv('PROXY')
 if _proxy:
     args = _proxy.split(';')
-    _request_kwargs={
+    REQUEST_KWARGS={
         'proxy_url': 'socks5://' + args[0] + '/', 
         'urllib3_proxy_kwargs': {
             "username": args[1], 
@@ -20,6 +21,6 @@ if _proxy:
         }
     }
 else:
-    _request_kwargs = None
+    REQUEST_KWARGS = None
 
 permission_error = u'Отказано в доступе'
