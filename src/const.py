@@ -4,7 +4,9 @@ import os
 root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 assets_dir = os.path.join(root_path, 'assets')
 
-_db_name = assets_dir + '/data.sqlite'
+DB_PATH = assets_dir + '/data.sqlite'
+SCHEMA_PATH = assets_dir + '/schema.sql'
+LOG_PATH = root_path + '/log.txt'
 _bot_mode = os.getenv('MODE', 'test')
 _bot_token = os.getenv('BOT_TOKEN')
 _proxy = os.getenv('PROXY')
