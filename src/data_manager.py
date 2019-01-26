@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import sqlite3
-import const
+from const import DB_PATH, SCHEMA_PATH, LOG_PATH
 import os.path
 import os
 from cache_manager import Cache
@@ -12,16 +12,15 @@ def dict_factory(cursor, row):
         d[col[0]] = row[idx]
     return d
 
-logging.basicConfig(filename=const.root_path + '/log.txt', level=logging.INFO,
+logging.basicConfig(filename=LOG_PATH, level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-DB_NAME = const._db_name
-if not os.path.isfile(DB_NAME): 
-    open(DB_NAME, 'a')
-    os.system('sqlite3 ' + DB_NAME + ' < ' + const.assets_dir + '/schema.sql')
+if not os.path.isfile(DB_PATH): 
+    open(DB_PATH, 'a')
+    os.system('sqlite3 ' + DB_PATH + ' < ' + SCHEMA_PATH)
 
 
 def connect():
-    conn = sqlite3.connect(DB_NAME, check_same_thread = False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread = False)
     conn.row_factory = dict_factory
     return conn
         
