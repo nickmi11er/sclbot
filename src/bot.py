@@ -14,7 +14,7 @@ logging.basicConfig(filename=const.root_path + '/log.txt', level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
-bot = Bot(const._bot_token, const._request_kwargs)
+bot = Bot(const.BOT_TOKEN, const.REQUEST_KWARGS)
 
 def log_bot_request(message, action):
     user = message.from_user
