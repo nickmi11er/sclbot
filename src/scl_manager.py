@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
+import json
+import urllib2
+import re
 from const import SCL_API
 import date_manager
-import re
 from models.user import User
-import urllib2
-import json
 
 
 class Task:
@@ -18,11 +18,12 @@ class Task:
 
 pt = re.compile(r'(?:(кр|)\s*([0-9]+(?:,|\s*[0-9]+)*)+\s*(н|ч)+\s*)?\s*(.+)', re.UNICODE)
 
-start_dt = datetime.strptime('03.09.2018', '%d.%m.%Y')
+start_dt = datetime.strptime('11.02.2019', '%d.%m.%Y')
+
 end_dt = datetime.strptime('31.05.2019', '%d.%m.%Y')
 start_holy_dt = datetime.strptime('29.05.2019', '%d.%m.%Y')
 
-study_year = "2018-2019"
+study_year = "2019"
 
 scl_time = {
     1: "09:00-10:30",
