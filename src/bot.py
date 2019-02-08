@@ -10,7 +10,7 @@ import const
 import os
 
 
-logging.basicConfig(filename=const.root_path + '/log.txt', level=logging.INFO,
+logging.basicConfig(filename=const.ROOT_PATH + '/log.txt', level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
@@ -53,6 +53,16 @@ def auth(func):
 @bot.handle(name='my_id')
 def my_id(bt, update):
     bot.reply(update, "Ваш ID: {}".format(update.message.from_user.id))
+
+
+@auth
+@bot.handle(name='echo')
+def echo(bt, upd):
+    log_bot_request(upd.message, 'Echo')
+    usr = data_manager.get_user(upd.message.from_user.id)
+    if usr and usr['role'] == 1 or usr['role'] == 3: # 1 - admin, 3 - group master
+        msg = bt.send_message(chat_id=upd.message.chat_id, text='Хорошо! Для того чтобы отправить сообщение моим пользователям, отправь его мне в ответном сообщении.')
+        bot.listen_for_message(upd.message.chat_id, msg.message_id)
 
 
 # CommandHandler: Расписание пар на текущий день
@@ -195,15 +205,6 @@ def filter (bt, upd):
         bot.echo_for_all(msg.text)
     else:
         upd.message.text in commands and commands[msg.text](bt, upd)
-
-
-@bot.handle(name='echo')
-def echo(bt, upd):
-    log_bot_request(upd.message, 'Echo')
-    usr = data_manager.get_user(upd.message.from_user.id)
-    if usr and usr['role'] == 1 or usr['role'] == 3: # 1 - admin, 3 - group master
-        msg = bt.send_message(chat_id=upd.message.chat_id, text='Хорошо! Для того чтобы отправить сообщение моим пользователям, отправь его мне в ответном сообщении.')
-        bot.listen_for_message(upd.message.chat_id, msg.message_id)
 
 
 notified = False
