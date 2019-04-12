@@ -152,10 +152,10 @@ def groups_kb(groups, private_ch):
 def inst_kb(institutes, private_ch):
     markup = []
 
-    row_count = int(len(institutes) / 2)
     for i in institutes:
         if not i or i == "":
             institutes.remove(i)
+    row_count = int(len(institutes) / 2)
 
     if private_ch:
         pref = 'inst-p-'
