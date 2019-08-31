@@ -18,9 +18,9 @@ class Task:
 
 pt = re.compile(r'(?:(кр|)\s*([0-9]+(?:,|\s*[0-9]+)*)+\s*(н|ч)+\s*)?\s*(.+)', re.UNICODE)
 
-start_dt = datetime.strptime('11.02.2019', '%d.%m.%Y')
+start_dt = datetime.strptime('01.09.2019', '%d.%m.%Y')
 
-end_dt = datetime.strptime('31.05.2019', '%d.%m.%Y')
+end_dt = datetime.strptime('31.12.2019', '%d.%m.%Y')
 start_holy_dt = datetime.strptime('29.05.2019', '%d.%m.%Y')
 
 study_year = "2019"
