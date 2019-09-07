@@ -19,7 +19,7 @@ class Task:
 pt = re.compile(r'(?:(кр|)\s*([0-9]+(?:,|\s*[0-9]+)*)+\s*(н|ч)+\s*)?\s*(.+)', re.UNICODE)
 
 # move this constants into db
-start_dt = datetime.strptime('01.09.2019', '%d.%m.%Y')
+start_dt = datetime.strptime('02.09.2019', '%d.%m.%Y')
 
 end_dt = datetime.strptime('31.12.2019', '%d.%m.%Y')
 start_holy_dt = datetime.strptime('31.12.2019', '%d.%m.%Y')
