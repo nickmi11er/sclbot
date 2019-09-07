@@ -18,12 +18,20 @@ class Task:
 
 pt = re.compile(r'(?:(кр|)\s*([0-9]+(?:,|\s*[0-9]+)*)+\s*(н|ч)+\s*)?\s*(.+)', re.UNICODE)
 
+# move this constants into db
 start_dt = datetime.strptime('01.09.2019', '%d.%m.%Y')
 
 end_dt = datetime.strptime('31.12.2019', '%d.%m.%Y')
 start_holy_dt = datetime.strptime('31.12.2019', '%d.%m.%Y')
 
 study_year = "2019"
+
+fixed_time_map = {
+    "13:00-14:30": "13:10-14:40",
+    "14:40-16:10": "14:50-16:20",
+    "16:20-17:50": "16:30-18:00",
+    "18:00-19:30": "18:10-19:40"
+}
 
 scl_time = {
     1: "09:00-10:30",
@@ -118,42 +126,44 @@ def get_scl(dt, id):
         index = 1
     
     daynum = daynum + index
-    request_url = SCL_API + "/scl?year=" + study_year + "&group=" + user.group_name.encode("utf-8") + "&dow=" + str(dow)
+    request_url = SCL_API + "/scl?year=" + study_year + "&group=" + user.group_name.encode("utf-8") + "&dow=" + str(dow) + "&weeksLeft=" + str(wleft)
     day = urllib2.urlopen(request_url).read()
     subjects = json.loads(day)["subjects"]
 
-    for i in range(0, 12, 2):
-        daynum = i
-        if wleft % 2 == 0:
-            daynum = daynum + 1
-        s = subjects[daynum]
-        sub_name = s["name"]
-        sub_class = s["class"]
-        sub_lecturer = s["lecturer"]
-        sub_type = s["type"]
-        # проверяем существует ли вариативность пар на один и тот же промежуток времени
-        if sub_name == '-':
-            continue
+    if subjects:
+        for subj in subjects:
+            sub_name = subj["name"]
+            sub_class = subj["class"]
+            sub_lecturer = subj["lecturer"]
+            sub_type = subj["type"]
+            sub_time = subj["start_time"] + "-" + subj["end_time"]
+            if sub_time in fixed_time_map:
+                sub_time = fixed_time_map[sub_time]
+            sub_time = sub_time.encode("utf-8")
 
-        task_name = get_task(sub_name, wleft)
+            # проверяем существует ли вариативность пар на один и тот же промежуток времени
+            if sub_name == '-':
+                continue
 
-        if not task_name:
-            continue
+            task_name = get_task(sub_name, wleft)
 
-        tp = ''
-        if sub_type.encode('utf-8') == 'пр':
-            tp = '❗'
-        elif sub_type.encode('utf-8') == 'лр':
-            tp = '👩‍🔬'
-        else:
-            tp = '▫️'
+            if not task_name:
+                continue
 
-        cl = ''
-        if sub_class != '-':
-            cl = ' (' + sub_class.encode("utf-8") + ')'
+            tp = ''
+            if sub_type.encode('utf-8') == 'пр':
+                tp = '❗'
+            elif sub_type.encode('utf-8') == 'лр':
+                tp = '👩‍🔬'
+            else:
+                tp = '▫️'
 
-        task = Task(task_name, cl, sub_lecturer, tp, scl_time[i / 2 + 1])
-        tasks.append(task)
+            cl = ''
+            if sub_class != '-':
+                cl = ' (' + sub_class.encode("utf-8") + ')'
+
+            task = Task(task_name, cl, sub_lecturer, tp, sub_time)
+            tasks.append(task)
 
     out = m_bold('Расписание пар на {} ({}):'.format(date.strftime('%d.%m.%Y'), date_manager.rus_week_day[date.weekday()])) + '\n\n'
      
