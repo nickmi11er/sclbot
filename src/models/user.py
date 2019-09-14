@@ -15,6 +15,7 @@ class User(Model):
         self.role = 0
         self.group_id = 0
         self.group_name = ''
+        self.show_lecturer = False
 
 
     @classmethod
@@ -37,7 +38,7 @@ class User(Model):
         if self.__hash__() == self.saved_hash:
             return
         self.saved_hash = self.__hash__()
-        dm.add_or_update_user(self.username, self.tg_user_id, self.role, self.group_id)
+        dm.add_or_update_user(self.username, self.tg_user_id, self.role, self.group_id, self.show_lecturer)
         cache.set(self.tg_user_id, self)
 
 

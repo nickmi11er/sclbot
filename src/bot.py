@@ -95,7 +95,13 @@ def schedule_with(bt, update):
 def button(bt, update):
     query = update.callback_query
     handler = ButtonHandlerFactory().get_handler(query)
-    if handler and handler.ready:
+    if query.data[0:5] == 'poll-':
+        dat = query.data[5:]
+        participants = data_manager.increment_poll_count(update.message.chat.id, dat[0:dat.index("-")], dat[dat.index("-") + 1:], update.message.message_id)
+        if participants:
+            for participant in participants:
+                print participant
+    elif handler and handler.ready:
         params = handler.gen_params()
         bot.send_answer(bt, params)
     elif query.data == 'ignore':
@@ -107,7 +113,7 @@ def button(bt, update):
 #     log_bot_request(update.message, 'get lecturers list')
 #     update.message.reply_text(data_manager.get_lecturers())
 
-
+@auth
 @bot.handle(name='notime')
 def notify_me(bt, update):
     log_bot_request(update.message, 'Notify Me')
@@ -121,7 +127,7 @@ def notify_me(bt, update):
 
     bot.reply(update, msg)
 
-
+@auth
 @bot.handle(name='unsub')
 def unsubscribe(bt, update):
     log_bot_request(update.message, 'Unsubscribe')
@@ -181,17 +187,36 @@ def choose_gp(bt, update):
 
 lg = '*Легенда*\n\n▫️- Лекция\n❗- Семинар\n👩‍🔬- Лабораторная\n📃- Расписание на неделю\n📆- Календарь'
 
-@bot.handle(name="l")
+@bot.handle(name="legend")
 def legend(bt, upd):
     log_bot_request(upd.message, 'Legend')
     bot.reply(upd, lg)
 
+@auth
+@bot.handle(name='more')
+def more(bt, upd):
+    log_bot_request(upd.message, 'More')
+    user = User.get(upd.message.from_user.id)
+    more_kb = kb.more_kb(user.show_lecturer)
+    bot.reply(update=upd, text=None, keyboard=more_kb)
+
+@bot.handle(name='poll')
+def start_poll(bt, upd):
+    log_bot_request(upd.message, 'Poll')
+    msg = upd.message
+    bot.prepare_poll(msg.from_user.id, upd.message.chat_id, msg.message_id, False)
+    bot.reply(upd, u'Для создания опроса, в ответном сообщении отправь текст или картинку, или и то и другое сразу)')
+
+
+@bot.handle(name='poll_end')
+def end_poll(bt, upd):
+    bot.publish_poll(bt)
 
 commands = {
     u'Расписание на сегодня': schedule,
     u'Расписание на указанный день': schedule_with,
     # u'Академический план': academy_plan,
-    u'Легенда': legend,
+    u'Еще': more,
     u'Уведомлять о событиях': notify_me,
     u'Отписаться от уведомлений':unsubscribe,
     u'Выбрать группу': choose_gp
@@ -203,8 +228,13 @@ def filter (bt, upd):
     # bt.send_document(chat_id=upd.message.chat_id, document=upd.message.document, caption="Test Caption")
     if msg.reply_to_message and bot.pop_listened_msg(msg.reply_to_message) is not None:
         bot.echo_for_all(msg.text)
+    if bot.prepared_poll:
+        if not bot.prepared_poll.poll_message:
+            bot.add_poll_content(msg)
+        else:
+            bot.add_poll_answer(msg.text)
     else:
-        upd.message.text in commands and commands[msg.text](bt, upd)
+        msg.text in commands and commands[msg.text](bt, upd)
 
 
 notified = False
