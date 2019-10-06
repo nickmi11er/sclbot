@@ -6,6 +6,7 @@ import keyboard as kb
 import date_manager
 import data_manager as dt
 from models.user import User
+import logging
 
 current_shown_dates={}
 
@@ -59,11 +60,13 @@ class MoreButtonsHandler(ButtonHandler):
                 user.show_lecturer = True
                 user.save()
                 self.params['text'] = 'Теперь преподаватели будут отображаться'
+                log(query.from_user, 'Show Lecturers')
             elif query.data[5:18] == 'hide-lecturer':
                 user = User.get(query.from_user.id)
                 user.show_lecturer = False
                 user.save()
                 self.params['text'] = 'Преподавателии больше не будут отображаться'
+                log(query.from_user, 'Hide Lecturers')
             self.params['kb'] = markup
             self.ready = True
 
@@ -108,7 +111,19 @@ class GroupButtonHandler(ButtonHandler):
                 username = user.first_name.encode('utf-8')
             if user.last_name:
                 username += ' {}'.format(user.last_name.encode('utf-8'))
-        User.create({'username':username, 'tg_user_id':user.id, 'role':2, 'group_name':gp_name}).save()
+
+        gp = dt.get_group_by_name(gp_name)
+        if gp:
+            gp_id = gp['group_id']
+        else:
+            gp_id = dt.add_group(gp_name)
+        localUser = User.get(user.id)
+        if localUser:
+            localUser.group_name = gp_name
+            localUser.group_id = gp_id  
+            localUser.save()
+        else:
+            User.create({'username':username, 'tg_user_id':user.id, 'role':2, 'group_name':gp_name, 'group_id':gp_id}).save()
         markup = kb.menu_kb()
         self.params['text'] = 'Группа успешно обновлена'
         self.params['extra_msg'] = True
@@ -196,3 +211,8 @@ class WeekdayButtonHandler(ButtonHandler):
         self.params['text'] = text
         self.params['kb'] = markup
         self.ready = True
+
+
+def log(user, action):
+        logging.info(
+        u'Action: {}, from user id: {}, {} {} ({})'.format(action, user.id, user.last_name, user.first_name, user.username))

@@ -212,9 +212,9 @@ def more_kb(lecturer_is_shown):
     markup.append(row)
     row = []
     if lecturer_is_shown:
-        row.append(InlineKeyboardButton('Не показывать преподавателей', callback_data='more-show-lecturer'))
+        row.append(InlineKeyboardButton('Скрывать преподавателей', callback_data='more-hide-lecturer'))
     else:
-        row.append(InlineKeyboardButton('Показывать преподавателей', callback_data='more-hide-lecturer'))
+        row.append(InlineKeyboardButton('Показывать преподавателей', callback_data='more-show-lecturer'))
     markup.append(row)
     return InlineKeyboardMarkup(markup)
 

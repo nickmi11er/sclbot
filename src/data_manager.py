@@ -35,7 +35,7 @@ def users_list():
 
 def get_user(tg_user_id, flush=False):
     conn = connect()
-    user = conn.cursor().execute("SELECT users.username, users.tg_user_id, users.role, groups.group_name, groups.group_id FROM users INNER JOIN groups ON users.group_id = groups.group_id WHERE users.tg_user_id = (?)",
+    user = conn.cursor().execute("SELECT users.username, users.tg_user_id, users.role, groups.group_name, groups.group_id, users.show_lecturer FROM users INNER JOIN groups ON users.group_id = groups.group_id WHERE users.tg_user_id = (?)",
                                  (tg_user_id, )).fetchone()
     conn.close()
     return user

@@ -140,6 +140,8 @@ def get_scl(dt, id):
             if sub_time in fixed_time_map:
                 sub_time = fixed_time_map[sub_time]
             sub_time = sub_time.encode("utf-8")
+            if sub_lecturer:
+                sub_lecturer = sub_lecturer.encode("utf-8")
 
             # проверяем существует ли вариативность пар на один и тот же промежуток времени
             if sub_name == '-':
@@ -160,7 +162,7 @@ def get_scl(dt, id):
 
             cl = ''
             if sub_class != '-':
-                cl = ' (' + sub_class.encode("utf-8") + ')'
+                cl = sub_class.encode("utf-8")
 
             task = Task(task_name, cl, sub_lecturer, tp, sub_time)
             tasks.append(task)
@@ -169,7 +171,11 @@ def get_scl(dt, id):
      
     if tasks:
         for t in tasks:
-            out = out + t.tp + t.time + ' ' + t.name + t.room + '\n'
+            out = out + t.tp + t.time + ' ' + t.name + '(' + t.room
+            if user.show_lecturer and t.lecturer != '-':
+                out += ', ' + t.lecturer
+            out += ')'
+            out += '\n'
     else:
         out = out + "Пар нет. Отдыхай!\n"
 

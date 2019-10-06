@@ -198,19 +198,19 @@ def more(bt, upd):
     log_bot_request(upd.message, 'More')
     user = User.get(upd.message.from_user.id)
     more_kb = kb.more_kb(user.show_lecturer)
-    bot.reply(update=upd, text=None, keyboard=more_kb)
+    bot.reply(update=upd, text='*Еще*', keyboard=more_kb)
 
-@bot.handle(name='poll')
-def start_poll(bt, upd):
-    log_bot_request(upd.message, 'Poll')
-    msg = upd.message
-    bot.prepare_poll(msg.from_user.id, upd.message.chat_id, msg.message_id, False)
-    bot.reply(upd, u'Для создания опроса, в ответном сообщении отправь текст или картинку, или и то и другое сразу)')
+# @bot.handle(name='poll')
+# def start_poll(bt, upd):
+#     log_bot_request(upd.message, 'Poll')
+#     msg = upd.message
+#     bot.prepare_poll(msg.from_user.id, upd.message.chat_id, msg.message_id, False)
+#     bot.reply(upd, u'Для создания опроса, в ответном сообщении отправь текст или картинку, или и то и другое сразу)')
 
 
-@bot.handle(name='poll_end')
-def end_poll(bt, upd):
-    bot.publish_poll(bt)
+# @bot.handle(name='poll_end')
+# def end_poll(bt, upd):
+#     bot.publish_poll(bt)
 
 commands = {
     u'Расписание на сегодня': schedule,
@@ -228,11 +228,11 @@ def filter (bt, upd):
     # bt.send_document(chat_id=upd.message.chat_id, document=upd.message.document, caption="Test Caption")
     if msg.reply_to_message and bot.pop_listened_msg(msg.reply_to_message) is not None:
         bot.echo_for_all(msg.text)
-    if bot.prepared_poll:
-        if not bot.prepared_poll.poll_message:
-            bot.add_poll_content(msg)
-        else:
-            bot.add_poll_answer(msg.text)
+    # if bot.prepared_poll:
+    #     if not bot.prepared_poll.poll_message:
+    #         bot.add_poll_content(msg)
+    #     else:
+    #         bot.add_poll_answer(msg.text)
     else:
         msg.text in commands and commands[msg.text](bt, upd)
 
