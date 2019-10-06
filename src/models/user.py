@@ -15,20 +15,12 @@ class User(Model):
         self.role = 0
         self.group_id = 0
         self.group_name = ''
+        self.show_lecturer = False
 
 
     @classmethod
     def create(cls, args):
         user = User()
-        gp_name = args['group_name']
-        gp = dm.get_group_by_name(gp_name)
-
-        if gp:
-            gp_id = gp['group_id']
-        else:
-            gp_id = dm.add_group(gp_name)
-    
-        args['group_id'] = gp_id
         cls._map(user, args)
         return user
 
@@ -37,7 +29,7 @@ class User(Model):
         if self.__hash__() == self.saved_hash:
             return
         self.saved_hash = self.__hash__()
-        dm.add_or_update_user(self.username, self.tg_user_id, self.role, self.group_id)
+        dm.add_or_update_user(self.username, self.tg_user_id, self.role, self.group_id, self.show_lecturer)
         cache.set(self.tg_user_id, self)
 
 

@@ -12,10 +12,13 @@ CREATE TABLE IF NOT EXISTS `users` (
 	`role`	INTEGER DEFAULT (2),
 	`group_id`	INTEGER,
 	`description`	VARCHAR,
+	`show_lecturer`	BOOLEAN NOT NULL DEFAULT false,
 	FOREIGN KEY(`role`) REFERENCES `roles`(`role_id`),
 	FOREIGN KEY(`group_id`) REFERENCES `groups`(`group_id`),
 	PRIMARY KEY(`user_id`)
 );
+ALTER TABLE users ADD show_lecturer BOOLEAN NOT NULL DEFAULT false;
+
 CREATE TABLE IF NOT EXISTS `subscribers` (
 	`id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
 	`chat_id`	INTEGER NOT NULL UNIQUE,

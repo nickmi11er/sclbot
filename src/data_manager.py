@@ -35,18 +35,21 @@ def users_list():
 
 def get_user(tg_user_id, flush=False):
     conn = connect()
-    user = conn.cursor().execute("SELECT users.username, users.tg_user_id, users.role, groups.group_name, groups.group_id FROM users INNER JOIN groups ON users.group_id = groups.group_id WHERE users.tg_user_id = (?)",
+    user = conn.cursor().execute("SELECT users.username, users.tg_user_id, users.role, groups.group_name, groups.group_id, users.show_lecturer FROM users INNER JOIN groups ON users.group_id = groups.group_id WHERE users.tg_user_id = (?)",
                                  (tg_user_id, )).fetchone()
     conn.close()
     return user
 
 
-def add_or_update_user(username, tg_user_id, role, group_id):
+def add_or_update_user(username, tg_user_id, role, group_id, show_lecturer):
     conn = connect()
     try:
-        username = unicode(username, 'utf8')
-        conn.cursor().execute("INSERT OR REPLACE INTO users (username, tg_user_id, role, group_id) VALUES (?, ?, ?, ?)",
-                              (username, tg_user_id, role, group_id))
+        try:
+            username = unicode(username, 'utf8')
+        except TypeError:
+            pass
+        conn.cursor().execute("INSERT OR REPLACE INTO users (username, tg_user_id, role, group_id, show_lecturer) VALUES (?, ?, ?, ?, ?)",
+                              (username, tg_user_id, role, group_id, show_lecturer))
     except sqlite3.DatabaseError as err:
         logging.error(err)
         conn.rollback()
@@ -205,6 +208,75 @@ def add_group(gp_name):
         conn.commit()
     conn.close()
     return gp_id
+
+def _add_poll(cursor, p_id, question, answeres):
+    cursor.execute("INSERT INTO polls (poll_id, question) VALUES (?, ?)", (p_id, question))
+    poll_id = cursor.lastrowid
+    inc = 1
+    for answer in answeres:
+        ans_id = poll_id + inc
+        inc += 1
+        cursor.execute("INSERT INTO poll_answeres (answer_id, poll_id, answer) VALUES (?, ?, ?)", (ans_id, poll_id, answer))
+    return poll_id
+
+def add_poll(p_id, question, answeres):
+    conn = connect()
+    poll_id = None
+    try:
+        cursor = conn.cursor()
+        _add_poll(cursor, p_id, question, answeres)
+    except sqlite3.DatabaseError as err:
+        logging.error(err)
+        conn.rollback()
+    else:
+        conn.commit()
+    conn.close()
+    return poll_id
+
+def add_throne_pretender(user_id, p_id):
+    conn = connect()
+    try:
+        cursor = conn.cursor()
+        poll_id = _add_poll(cursor, p_id, 'Сделать ' + user_id + ' мастером группы', ['Да', 'Нет'])
+        cursor.execute("INSERT INTO throne_pretenders (tg_user_id, poll_id) VALUES (?, ?)", (user_id, poll_id))
+    except sqlite3.DatabaseError as err:
+        logging.error(err)
+        conn.rollback()
+    else:
+        conn.commit()
+    conn.close()
+
+def increment_poll_count(user_id, poll_id, answer_id, message_id):
+    conn = connect()
+    participants = []
+    is_participate = False
+    try:
+        cursor = conn.cursor()
+        participants = cursor.execute("SELECT user_id, answer_id FROM poll_participants WHERE poll_id = (?)", (poll_id, )).fetchall()
+        for participant in participants:
+            if user_id == participant['user_id']:
+                is_participate = True
+        if not is_participate:
+            cursor.execute("UPDATE poll_answeres SET count = count + 1 WHERE answer_id = (?)", (answer_id, ))
+            cursor.execute("INSERT INTO poll_participants (poll_id, user_id, answer_id, message_id) VALUES (?, ?, ?, ?)", (poll_id, user_id, answer_id, message_id))
+    except sqlite3.DatabaseError as err:
+        logging.error(err)
+        conn.rollback()
+    else:
+        conn.commit()
+    conn.close()
+    if not is_participate:
+        return participants
+    else:
+         return None
+
+def get_classmates_ids(user_id):
+    conn = connect()
+    ids = conn.cursor().execute("SELECT ").fetchall()
+
+    return ids
+
+# print(increment_poll_count("363242536", 3, 6, "14532345"))
 
 
 # def scl_info(conn):

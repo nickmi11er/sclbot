@@ -116,7 +116,7 @@ def menu_kb():
 
     row = []
     row.append(KeyboardButton('Выбрать группу'))
-    row.append(KeyboardButton('Легенда'))
+    row.append(KeyboardButton('Еще'))
 
     markup.append(row)
     keyboard = ReplyKeyboardMarkup(markup, resize_keyboard=True)
@@ -201,4 +201,38 @@ def root_groups_kb(root_gps, private_ch):
         row.append(InlineKeyboardButton(root_gps[len(root_gps) - 1], callback_data=pref + root_gps[len(root_gps) - 1]))
         markup.append(row)
 
+    return InlineKeyboardMarkup(markup)
+
+
+def more_kb(lecturer_is_shown):
+    markup = []
+
+    row = []
+    row.append(InlineKeyboardButton('Легенда', callback_data='more-legend'))
+    markup.append(row)
+    row = []
+    if lecturer_is_shown:
+        row.append(InlineKeyboardButton('Скрывать преподавателей', callback_data='more-hide-lecturer'))
+    else:
+        row.append(InlineKeyboardButton('Показывать преподавателей', callback_data='more-show-lecturer'))
+    markup.append(row)
+    return InlineKeyboardMarkup(markup)
+
+def one_btn_kb(title, callback):
+    markup = []
+    row = []
+    row.append(InlineKeyboardButton(title, callback_data=callback))
+    markup.append(row)
+    return InlineKeyboardMarkup(markup)
+
+def poll_kb(poll_id, answeres):
+    markup = []
+
+    inc = 1
+    for answer in answeres:
+        ans_id = poll_id + inc
+        inc += 1
+        row = []
+        row.append(InlineKeyboardButton(answer, callback_data='poll-' + str(poll_id) + '-' + str(ans_id)))
+        markup.append(row)
     return InlineKeyboardMarkup(markup)
