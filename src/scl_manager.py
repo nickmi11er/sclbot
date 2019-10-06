@@ -171,10 +171,21 @@ def get_scl(dt, id):
      
     if tasks:
         for t in tasks:
-            out = out + t.tp + t.time + ' ' + t.name + '(' + t.room
+            additional = []
+            
+            out = out + t.tp + t.time + ' ' + t.name
+            if t.room != '':
+                additional.append(t.room)
             if user.show_lecturer and t.lecturer != '-':
-                out += ', ' + t.lecturer
-            out += ')'
+                additional.append(t.lecturer)
+            
+            if len(additional) > 0:
+                out += ' ('
+                for item in additional:
+                    out += item
+                    if (additional.index(item) != len(additional) - 1):
+                        out += ', '
+                out += ')'
             out += '\n'
     else:
         out = out + "Пар нет. Отдыхай!\n"
