@@ -19,10 +19,10 @@ class Task:
 pt = re.compile(r'(?:(кр|)\s*([0-9]+(?:,|\s*[0-9]+)*)+\s*(н|ч)+\s*)?\s*(.+)', re.UNICODE)
 
 # move this constants into db
-start_dt = datetime.strptime('10.02.2020', '%d.%m.%Y')
+start_dt = datetime.strptime('01.09.2020', '%d.%m.%Y')
 
-end_dt = datetime.strptime('31.05.2020', '%d.%m.%Y')
-start_holy_dt = datetime.strptime('01.06.2020', '%d.%m.%Y')
+end_dt = datetime.strptime('31.12.2020', '%d.%m.%Y')
+start_holy_dt = datetime.strptime('31.12.2020', '%d.%m.%Y')
 
 study_year = "2020"
 
