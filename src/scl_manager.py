@@ -126,7 +126,7 @@ def get_scl(dt, id):
         index = 1
     
     daynum = daynum + index
-    request_url = SCL_API + "/scl?year=" + study_year + "&group=" + user.group_name.encode("utf-8") + "&dow=" + str(dow) + "&weeksLeft=" + str(wleft)
+    request_url = SCL_API + "/scl?year=" + study_year + "&group=" + urllib2.quote(user.group_name) + "&dow=" + str(dow) + "&weeksLeft=" + str(wleft)
     day = urllib2.urlopen(request_url).read()
     subjects = json.loads(day)["subjects"]
 
@@ -198,9 +198,9 @@ def institutes():
     return institutes
 
 def root_groups(inst):
-    root_gps = json.loads(urllib2.urlopen(SCL_API + "/rootGroups?inst="+inst.encode('utf-8')).read())
+    root_gps = json.loads(urllib2.urlopen(SCL_API + "/rootGroups?inst="+urllib2.quote(inst)).read())
     return root_gps
 
 def groups(root_gp):
-    groups = json.loads(urllib2.urlopen(SCL_API + "/groups?rootGroup="+root_gp.encode('utf-8')).read())
+    groups = json.loads(urllib2.urlopen(SCL_API + "/groups?rootGroup="+urllib2.quote(root_gp)).read())
     return groups
