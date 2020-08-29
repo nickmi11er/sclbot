@@ -1,5 +1,5 @@
 FROM alpine:latest
-RUN apk add --update python py-pip sqlite
+RUN apk add --update python2 py-pip sqlite
 
 COPY requirements.txt /src/requirements.txt
 RUN pip install -r /src/requirements.txt
